@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# Generated Vite build
+dist/
+
+# Local operating-system metadata
+.DS_Store
+
+# Source presentation files; these are not used by the website build.
+cardnews/
+
+# Local environment files
+.env
+.env.*
+!.env.example
