@@ -1,19 +1,19 @@
 import { useRef } from 'react'
 import { motion, useMotionValue, useScroll, useSpring, useTransform } from 'framer-motion'
-import { ArrowDown, ArrowUpRight, Sparkles } from 'lucide-react'
+import { ArrowDown, ArrowUpRight, Flame, Sparkles, Trophy, BookOpen } from 'lucide-react'
 import MagneticButton from './ui/MagneticButton.jsx'
 import { gradientSlice } from './ui/Primitives.jsx'
-import { links, recruit } from '../data/site.js'
+import { links } from '../data/site.js'
 
 const ease = [0.16, 1, 0.3, 1]
 
 const chips = [
-  { t: 'Azure', x: '8%', y: '22%', r: '-8deg', d: '0s' },
-  { t: 'MCP', x: '84%', y: '18%', r: '6deg', d: '-2s' },
-  { t: 'RAG', x: '90%', y: '58%', r: '-5deg', d: '-4s' },
-  { t: 'Copilot', x: '6%', y: '66%', r: '7deg', d: '-1s' },
-  { t: 'K8s', x: '72%', y: '80%', r: '-4deg', d: '-3s' },
-  { t: 'MS Learn', x: '20%', y: '84%', r: '5deg', d: '-5s' },
+  { t: 'Azure Cosmos DB', x: '8%', y: '22%', r: '-8deg', d: '0s' },
+  { t: 'MSA 250 Clicks', x: '82%', y: '18%', r: '6deg', d: '-2s' },
+  { t: 'LinkedIn Relay', x: '88%', y: '58%', r: '-5deg', d: '-4s' },
+  { t: 'MS Learn', x: '6%', y: '66%', r: '7deg', d: '-1s' },
+  { t: 'Leaderboard', x: '74%', y: '80%', r: '-4deg', d: '-3s' },
+  { t: 'Learn It, Teach', x: '18%', y: '84%', r: '5deg', d: '-5s' },
 ]
 
 function Letters({ text, className = '', delay = 0, ready, gradient = false }) {
@@ -81,16 +81,6 @@ export default function Hero({ ready }) {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,var(--color-bg)_95%)]" />
       </motion.div>
 
-      {/* Giant watermark */}
-      <motion.div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-[-4vw] -z-10 select-none text-center font-display text-[38vw] font-extrabold leading-none text-outline"
-        initial={{ opacity: 0 }}
-        animate={ready ? { opacity: 0.45 } : {}}
-        transition={{ duration: 2, delay: 0.6 }}
-      >
-        LIT
-      </motion.div>
 
       {/* Floating chips */}
       <motion.div className="pointer-events-none absolute inset-0 -z-0 hidden md:block" style={{ x: chipX, y: chipY }}>
@@ -114,9 +104,7 @@ export default function Hero({ ready }) {
         className="relative mx-auto flex w-full max-w-6xl flex-1 flex-col items-center justify-center px-6 pb-28 pt-36 text-center"
       >
         <motion.a
-          href={links.apply}
-          target="_blank"
-          rel="noreferrer"
+          href="#dashboard"
           data-cursor="hover"
           className="glass group mb-8 inline-flex items-center gap-2 rounded-full py-1.5 pl-1.5 pr-4 text-xs text-muted transition-colors hover:text-fg"
           initial={{ opacity: 0, y: 20 }}
@@ -124,56 +112,57 @@ export default function Hero({ ready }) {
           transition={{ duration: 0.8, ease, delay: 0.1 }}
         >
           <span className="inline-flex items-center gap-1 rounded-full bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))] px-2.5 py-1 text-[11px] font-semibold text-bg">
-            <Sparkles className="h-3 w-3" /> {recruit.generation} 모집
+            <Sparkles className="h-3 w-3" /> LIT MSA 챌린지
           </span>
-          <span>{recruit.end.replace(/-/g, '.').slice(5)} 까지 · 경북대학교 컴퓨터학부 IT 기술 발표 동아리</span>
+          <span>250 Clicks Challenge</span>
           <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
         </motion.a>
 
-        <h1 className="font-display text-[15vw] font-extrabold leading-[0.92] tracking-[-0.04em] sm:text-[11vw] lg:text-[9rem]">
+        <h1 className="font-display text-[14vw] font-extrabold leading-[0.92] tracking-[-0.04em] sm:text-[10vw] lg:text-[8.5rem]">
           <Letters text="Learn It," ready={ready} delay={0.2} />
           <br />
           <Letters text="Teach." ready={ready} delay={0.55} gradient className="pr-[0.08em]" />
         </h1>
 
         <motion.p
-          className="mt-8 max-w-2xl text-base leading-relaxed text-muted sm:text-xl"
+          className="mt-8 max-w-xl text-base leading-relaxed text-muted sm:text-lg"
           initial={{ opacity: 0, y: 24 }}
           animate={ready ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.9, ease, delay: 0.95 }}
         >
-          기술을 배우고, 발표하고, 전파합니다.
-          <br className="hidden sm:block" /> 매달 무대에 오르는 기술 커뮤니케이터들의 커뮤니티,{' '}
-          <span className="text-fg">LIT</span>.
+          경북대학교 IT 기술 발표 동아리, <span className="font-semibold text-fg">LIT</span>
         </motion.p>
 
         <motion.div
-          className="mt-10 flex flex-col items-center gap-3 sm:flex-row"
+          className="mt-10 flex flex-wrap items-center justify-center gap-3"
           initial={{ opacity: 0, y: 24 }}
           animate={ready ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.9, ease, delay: 1.1 }}
         >
-          <MagneticButton as="a" href={links.apply} target="_blank" rel="noreferrer" variant="gradient" className="!px-7 !py-4">
-            LIT {recruit.generation} 지원하기
-            <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          <MagneticButton as="a" href="#dashboard" variant="gradient" className="!px-7 !py-4">
+            <Flame className="h-4 w-4" />
+            대시보드
           </MagneticButton>
-          <MagneticButton as="a" href="#about" variant="ghost" className="!px-7 !py-4">
-            우리가 하는 일
-            <ArrowDown className="h-4 w-4 transition-transform duration-300 group-hover:translate-y-0.5" />
+          <MagneticButton as="a" href="#leaderboard" variant="ghost" className="!px-7 !py-4">
+            <Trophy className="h-4 w-4" />
+            리더보드
+          </MagneticButton>
+          <MagneticButton as="a" href="#articles" variant="ghost" className="!px-7 !py-4">
+            <BookOpen className="h-4 w-4" />
+            피드
           </MagneticButton>
         </motion.div>
       </motion.div>
 
       {/* Bottom bar */}
       <motion.div
-        className="relative mx-auto mb-8 flex w-full max-w-6xl items-end justify-between px-6 font-mono text-[11px] uppercase tracking-[0.25em] text-muted"
+        className="relative mx-auto mb-8 flex w-full max-w-6xl items-end justify-center px-6 font-mono text-[11px] uppercase tracking-[0.25em] text-muted"
         initial={{ opacity: 0 }}
         animate={ready ? { opacity: 1 } : {}}
         transition={{ duration: 1, delay: 1.5 }}
       >
-        <span className="hidden sm:block">KNU · IT5 B102</span>
-        <a href="#about" className="flex flex-col items-center gap-2" aria-label="아래로 스크롤">
-          <span>Scroll</span>
+        <a href="#dashboard" className="flex flex-col items-center gap-2" aria-label="아래로 스크롤">
+          <span className="tracking-widest">둘러보기</span>
           <span className="relative h-10 w-px overflow-hidden bg-white/15">
             <motion.span
               className="absolute inset-x-0 top-0 h-1/2 bg-fg"
@@ -182,7 +171,6 @@ export default function Hero({ ready }) {
             />
           </span>
         </a>
-        <span className="hidden sm:block">Since 2026</span>
       </motion.div>
     </section>
   )

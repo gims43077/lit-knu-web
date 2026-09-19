@@ -5,9 +5,9 @@ import TiltCard from './ui/TiltCard.jsx'
 import { ddd } from '../data/site.js'
 
 const statement =
-  '빠르게 변하는 기술 앞에서, 우리는 배우는 데서 멈추지 않습니다. 직접 만들어 보고, 무대에서 설명하고, 세상에 전파합니다. LIT은 기술을 이야기하는 사람, Tech Evangelist가 되는 곳입니다.'
+  '빠르게 변하는 기술 앞에서, 우리는 배우는 데서 멈추지 않습니다. 직접 실습하고, 글과 발표로 기록하며, 세상에 기술을 전파합니다. LIT은 배움을 나누는 Tech Evangelist가 되는 곳입니다.'
 
-const highlights = ['만들어', '설명하고,', '전파합니다.', 'Tech', 'Evangelist가']
+const highlights = ['실습하고,', '기록하며,', '전파합니다.', 'Tech', 'Evangelist가']
 
 function Word({ children, progress, range, highlight }) {
   const opacity = useTransform(progress, range, [0.12, 1])

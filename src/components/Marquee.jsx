@@ -1,13 +1,19 @@
 import { marquee } from '../data/site.js'
 
-function Row({ items, reverse = false, className = '' }) {
-  const list = [...items, ...items]
+function Row({ items }) {
+  // 3회 반복하여 끊김 없는 부드러운 무한 스크롤 구현
+  const list = [...items, ...items, ...items]
   return (
-    <div className={`flex w-max ${reverse ? 'animate-marquee-reverse' : 'animate-marquee'} ${className}`}>
+    <div className="flex w-max animate-marquee">
       {list.map((t, i) => (
-        <span key={i} className="flex items-center gap-8 pr-8 font-display text-2xl font-semibold tracking-tight sm:text-3xl">
-          <span className={i % 3 === 1 ? 'text-gradient' : i % 3 === 2 ? 'text-outline' : 'text-fg/90'}>{t}</span>
-          <span className="text-mint/70">✦</span>
+        <span
+          key={i}
+          className="flex items-center gap-7 pr-7 font-mono text-xs sm:text-[13px] font-semibold tracking-[0.25em] uppercase select-none"
+        >
+          <span className={i % 2 === 0 ? 'text-gradient font-bold' : 'text-fg/75'}>
+            {t}
+          </span>
+          <span className="text-mint/60 text-[10px]">✦</span>
         </span>
       ))}
     </div>
@@ -16,10 +22,9 @@ function Row({ items, reverse = false, className = '' }) {
 
 export default function Marquee() {
   return (
-    <div className="relative -mt-6 border-y border-line bg-surface/40 py-6 backdrop-blur-sm">
-      <div className="mask-fade-x flex flex-col gap-4 overflow-hidden">
+    <div className="relative -mt-6 border-y border-line bg-surface/30 py-3.5 backdrop-blur-md">
+      <div className="mask-fade-x overflow-hidden">
         <Row items={marquee} />
-        <Row items={[...marquee].reverse()} reverse className="opacity-50" />
       </div>
     </div>
   )

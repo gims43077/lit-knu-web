@@ -28,8 +28,9 @@ export function gradientSlice(i, n) {
 
 // 텍스트를 단어 단위로 잘라 아래에서 위로 마스킹 등장
 export function SplitWords({ text, className = '', delay = 0, stagger = 0.05, as = 'span', gradient = false }) {
+  if (!text) return null
   const Comp = motion[as] ?? motion.span
-  const words = text.split(' ')
+  const words = String(text).trim().split(/\s+/)
   return (
     <Comp className={className} aria-label={text}>
       {words.map((w, i) => (
@@ -53,6 +54,9 @@ export function SplitWords({ text, className = '', delay = 0, stagger = 0.05, as
 
 export function SectionHeading({ eyebrow, title, accent, desc, align = 'left', className = '' }) {
   const isCenter = align === 'center'
+  const hasTitle = Boolean(title && String(title).trim())
+  const hasAccent = Boolean(accent && String(accent).trim())
+
   return (
     <div className={`${isCenter ? 'mx-auto text-center' : ''} max-w-3xl ${className}`}>
       {eyebrow && (
@@ -65,13 +69,9 @@ export function SectionHeading({ eyebrow, title, accent, desc, align = 'left', c
         </Reveal>
       )}
       <h2 className="font-display text-4xl font-bold leading-[1.02] tracking-tight text-fg sm:text-5xl lg:text-6xl">
-        <SplitWords text={title} />
-        {accent && (
-          <>
-            {' '}
-            <SplitWords text={accent} gradient delay={0.15} />
-          </>
-        )}
+        {hasTitle && <SplitWords text={title} />}
+        {hasTitle && hasAccent && ' '}
+        {hasAccent && <SplitWords text={accent} gradient delay={hasTitle ? 0.15 : 0} />}
       </h2>
       {desc && (
         <Reveal delay={0.2} className="mt-6 text-base leading-relaxed text-muted sm:text-lg">

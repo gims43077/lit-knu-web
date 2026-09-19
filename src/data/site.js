@@ -1,4 +1,4 @@
-// 사이트 전체 콘텐츠. 문구/링크/일정은 이 파일만 수정하면 됩니다.
+// LIT x MSA 250 챌린지 플랫폼 데이터 설정
 
 export const links = {
   instagram: 'https://www.instagram.com/lit_knu/',
@@ -9,130 +9,183 @@ export const links = {
   apply: 'https://forms.gle/GPh7RGk7RLLV658L9',
   speaker: 'https://forms.gle/zHqafEuKe1sXXRnWA',
   mslearn: 'https://learn.microsoft.com/?wt.mc_id=studentamb_482865',
+  msaOfficial: 'https://studentambassadors.com/',
 }
 
 export const nav = [
-  { label: 'About', href: '#about' },
-  { label: 'Activities', href: '#activities' },
-  { label: 'Process', href: '#process' },
-  { label: 'Talks', href: '#talks' },
-  { label: 'Roadmap', href: '#roadmap' },
+  { label: 'Overview', href: '#top' },
+  { label: 'Dashboard', href: '#dashboard' },
+  { label: 'Leaderboard', href: '#leaderboard' },
+  { label: 'Feed', href: '#articles' },
+  { label: 'Notice', href: '#missions' },
+  { label: 'FAQ', href: '#faq' },
 ]
 
 export const recruit = {
   generation: '2기',
   start: '2026-08-31',
-  end: '2026-09-15',
-  endLabel: '9월 15일 (화) 23:59',
+  end: '2026-09-30',
+  endLabel: '9월 30일 (수) 23:59',
+  challengeName: 'MSA 250 Clicks Challenge',
 }
 
 export const marquee = [
-  'Azure', 'GitHub Copilot', 'MCP', 'RAG', 'LangChain', 'Vector Search', 'Kubernetes',
-  'Entra ID', 'Semantic Kernel', 'Microsoft Learn', 'GH-900', 'Build Recap', 'Ignite Recap',
-  'Tech Talk', 'Career Talk', 'MSA',
+  'LEARN IT, TEACH',
+  '경북대학교 IT 기술 발표 동아리',
+  '250 CLICKS CHALLENGE',
+  '배워서 나누는 기술 이야기',
+  'MICROSOFT LEARN',
+  '함께 달리는 250 완주',
+  'LIT × MSA',
 ]
 
 export const ddd = [
   {
     key: 'Development',
-    ko: '개발',
-    desc: 'Microsoft Learn에서 학습 경로를 고르고, 직접 코드를 짜며 기술의 핵심 구조를 파악합니다. 데모 코드는 LIT GitHub 조직에 기록됩니다.',
+    ko: '개발 (학습)',
+    desc: 'Microsoft Learn의 정규 학습 경로를 선택하고, 클라우드와 AI 기술을 직접 실습하며 나만의 인사이트를 만듭니다.',
   },
   {
     key: 'Delivery',
-    ko: '발표',
-    desc: '컨텐츠 설계도 → PPT → 리허설. 세 번의 피드백을 거쳐 청중이 기술의 구조를 한눈에 이해할 수 있는 스토리를 만듭니다.',
+    ko: '발표 (공유)',
+    desc: 'LinkedIn과 블로그에 학습 후기를 기록하고, 월간 Meetup에서 30분 기술 세션으로 청중에게 명확히 전달합니다.',
   },
   {
     key: 'Distribution',
-    ko: '전파',
-    desc: '월간 Meetup에서 발표하고, LinkedIn · velog · GitHub로 확장합니다. 발표 한 번이 포트폴리오와 커리어로 이어집니다.',
+    ko: '전파 (확산)',
+    desc: '각자의 MSA 챌린지 링크를 통해 배움을 세상에 전파하고, 250 클릭을 함께 달성하며 글로벌 커리어로 도약합니다.',
   },
 ]
 
 export const activities = [
   {
-    title: '월간 Meetup',
-    tag: 'Monthly',
-    desc: '매달 한 번, IT5호관 B102에서 열리는 정기 기술 발표. 학습한 기술을 30분 세션으로 공유합니다.',
-    icon: 'Mic2',
+    title: 'MSA 250 클릭 챌린지',
+    tag: 'Main Event',
+    desc: 'Microsoft Learn Student Ambassadors 공식 프로그램. 내 고유 링크 250 클릭을 채우고 글로벌 앰버서더로 인증받습니다.',
+    icon: 'Award',
     span: 'md:col-span-2 md:row-span-2',
     accent: 'pink',
   },
   {
-    title: 'MS Learn 스터디',
-    tag: 'Study',
-    desc: '2인 팀 또는 개인으로 학습 경로를 선택하고 함께 완주합니다.',
+    title: 'LinkedIn 아티클 릴레이',
+    tag: 'Community',
+    desc: '배운 기술을 LinkedIn과 블로그에 글로 정리하고 서로의 글을 응원하며 영향력을 넓힙니다.',
     icon: 'BookOpen',
     span: '',
     accent: 'mint',
   },
   {
-    title: 'MSA 챌린지',
-    tag: 'Challenge',
-    desc: 'Microsoft Student Ambassadors에 도전하고 커뮤니티 활동을 공식 경력으로 인증받습니다.',
-    icon: 'Award',
+    title: '체크포인트 리워드',
+    tag: 'Rewards',
+    desc: '30, 50, 100, 150, 200, 250 클릭 단계마다 커피 쿠폰, 자격증 응시권, 치킨, 특별 상금을 드립니다.',
+    icon: 'Trophy',
     span: '',
     accent: 'violet',
   },
   {
-    title: '국제 자격증',
+    title: '국제 공인 자격증 지원',
     tag: 'Certification',
-    desc: 'GH-900 등 Microsoft 공인 자격증 응시 비용을 지원하고 함께 준비합니다.',
+    desc: '100 클릭 돌파 부원에게 GH-900, AI-900 등 Microsoft 공인 자격증 시험 응시료를 전액 지원합니다.',
     icon: 'BadgeCheck',
     span: '',
     accent: 'amber',
   },
   {
-    title: '커리어톡',
-    tag: 'Career',
-    desc: 'IT 업계 주니어 개발자를 초청해 취업 과정과 현장 이야기를 듣습니다.',
-    icon: 'Briefcase',
+    title: '월간 Meetup 세션',
+    tag: 'Stage',
+    desc: '학습한 기술을 IT5호관 B102 무대에서 직접 발표하고 발표 슬라이드와 코드를 공유합니다.',
+    icon: 'Mic2',
     span: '',
     accent: 'mint',
   },
   {
-    title: 'Build / Ignite Recap',
-    tag: 'Recap',
-    desc: 'Microsoft의 글로벌 컨퍼런스 핵심을 요약해 다시 발표하는 시즌 세션.',
+    title: 'Azure Cloud 네이티브',
+    tag: 'Tech Stack',
+    desc: 'Cosmos DB, Functions, Container Apps, Entra ID 등 엔터프라이즈 클라우드 기술을 실제 프로젝트로 다룹니다.',
     icon: 'Radio',
     span: 'md:col-span-2',
     accent: 'pink',
   },
   {
-    title: '네트워킹',
-    tag: 'Community',
-    desc: 'OT · 피크닉 · MT · 워크샵. 기술 이야기를 나누는 사람들과 진짜 친해지는 시간.',
-    icon: 'Users',
+    title: '멘토링 & 네트워킹',
+    tag: 'Networking',
+    desc: 'IT 업계 선배 개발자, 현직 MSA 앰버서더들과 교류하며 취업과 커리어 고민을 나눕니다.',
+    icon: 'Briefcase',
     span: '',
     accent: 'violet',
   },
   {
-    title: '해커톤 & 대회',
-    tag: 'Compete',
-    desc: '팀을 꾸려 해커톤과 대회에 도전하고, 그 과정까지 발표 컨텐츠로 만듭니다.',
-    icon: 'Trophy',
+    title: '동아리 해커톤 & 퀘스트',
+    tag: 'Quest',
+    desc: '운영진이 매주 공지하는 미션 퀘스트를 수행하고 동아리 포인트를 모아 추가 보상을 받습니다.',
+    icon: 'Users',
     span: '',
     accent: 'amber',
   },
 ]
 
 export const process = [
-  { step: '01', title: '세션 신청', desc: '구글 폼으로 발표 의사를 밝히면 운영진이 월별 연사 일정을 매칭합니다.', mode: 'Forms' },
-  { step: '02', title: '주제 선택', desc: 'Microsoft Learn에서 학습 경로를 고르고 2인 팀 또는 개인 세션을 구성합니다.', mode: 'MS Learn' },
-  { step: '03', title: '설계도 & Repo', desc: 'LITofficial GitHub에 레포를 만들고, 기술 로직과 발표 흐름을 시각화한 컨텐츠 설계도를 작성합니다.', mode: 'GitHub · Notion' },
-  { step: '04', title: '피드백 ①', desc: '연사들끼리 온라인으로 모여 컨텐츠 설계를 서로 리뷰합니다.', mode: 'Online' },
-  { step: '05', title: 'PPT 제작', desc: 'LIT 템플릿과 1·2·3 법칙(그림 2개, 핵심 텍스트 3개)으로 슬라이드를 만듭니다.', mode: 'Template' },
-  { step: '06', title: '피드백 ②', desc: 'PPT와 스토리라인을 다시 다듬습니다. 설계도와 슬라이드가 하나의 흐름이 되도록.', mode: 'Online' },
-  { step: '07', title: '리허설', desc: '실제 발표 환경과 동일하게 오프라인 리허설. 시간·톤·데모까지 점검합니다.', mode: 'Offline' },
-  { step: '08', title: 'Meetup 발표', desc: '마지막 슬라이드에 GitHub QR을 담아 무대에 오릅니다. 그리고 SNS로 전파합니다.', mode: 'Stage' },
+  {
+    step: '01',
+    title: 'MS Learn 경로 선택',
+    desc: 'Microsoft Learn에서 AI, 클라우드, DevOps 등 관심 학습 경로를 고르고 나만의 고유 추천 링크를 발급받습니다.',
+    mode: 'MS Learn',
+  },
+  {
+    step: '02',
+    title: '실습 & 기술 정리',
+    desc: '학습 경로의 샌드박스와 랩을 직접 실행하며 핵심 개념과 동작 원리를 메모하고 설계도를 작성합니다.',
+    mode: 'Hands-on',
+  },
+  {
+    step: '03',
+    title: '기술 글 기고',
+    desc: 'LinkedIn, Velog, Tistory에 배운 내용을 알기 쉽게 작성하고, 본문에 내 챌린지 고유 링크를 연결합니다.',
+    mode: 'Writing',
+  },
+  {
+    step: '04',
+    title: 'LIT 피드 등록',
+    desc: 'LIT 웹 플랫폼에 내가 쓴 글을 등록하여 동아리원들에게 공유하고, 서로의 글에 좋아요와 피드백을 남깁니다.',
+    mode: 'LIT Feed',
+  },
+  {
+    step: '05',
+    title: '30 클릭 달성',
+    desc: '첫 번째 도약! 30 클릭을 달성하고 향긋한 커피 기프티콘을 수령합니다.',
+    mode: '🌱 30 달성',
+  },
+  {
+    step: '06',
+    title: '50 클릭 달성',
+    desc: '두 번째 체크포인트 50 클릭 돌파! 일상에서 유용한 편의점 기프티콘을 지급합니다.',
+    mode: '🌿 50 달성',
+  },
+  {
+    step: '07',
+    title: '100 클릭 달성',
+    desc: '100 클릭 돌파! 달콤한 케익 기프티콘과 함께 더 높은 마일스톤으로 도약합니다.',
+    mode: '🪴 100 달성',
+  },
+  {
+    step: '08',
+    title: '150 · 200 클릭 달성',
+    desc: '150 클릭 치킨 기프티콘 및 200 클릭 Microsoft 공인 자격증 응시비 전액 지원을 수령합니다.',
+    mode: '🌳 150 · 🍎 200',
+  },
+  {
+    step: '09',
+    title: '250 클릭 MSA 달성!',
+    desc: '최종 250 클릭 완주! Microsoft Learn 공식 앰버서더(MSA) 자격을 정식으로 획득합니다.',
+    mode: '👑 250 MSA',
+  },
 ]
 
 export const stats = [
-  { value: 12, suffix: '+', label: '연간 세션', sub: '매달 Meetup · Recap · 특강' },
-  { value: 3, suffix: '회', label: '피드백 라운드', sub: '설계 → PPT → 리허설' },
-  { value: 2, suffix: '기', label: '신규 부원 모집', sub: '2026년 2학기' },
-  { value: 100, suffix: '%', label: '실전 발표', sub: '모든 세션은 무대 위에서' },
+  { value: 250, suffix: '명', label: '1인당 목표 클릭수', sub: 'MSA 챌린지 공식 완주' },
+  { value: 6, suffix: '단계', label: '체크포인트 리워드', sub: '30부터 250까지 단계별 보상' },
+  { value: 100, suffix: '%', label: '자격증 응시 지원', sub: '200 클릭 달성 부원 전원' },
+  { value: 100, suffix: '%', label: '서로 돕는 커뮤니티', sub: 'Learn It, Teach 함께 완주' },
 ]
 
 export const talks = [
@@ -150,59 +203,59 @@ export const roadmap = [
     emoji: '🌱',
     items: [
       { date: '03.18', title: 'OT & 팀 빌딩' },
-      { date: '03.18 – 28', title: 'MS Learn 학습 경로 선택' },
-      { date: '04.27', title: '4월 Meetup' },
-      { date: '05.09 – 30', title: 'GH-900 응시비 지원' },
-      { date: '05.19', title: '5월 Meetup' },
-      { date: '05.30', title: '5월 커리어톡' },
+      { date: '03.28', title: 'MS Learn 학습 경로 선택' },
+      { date: '04.27', title: '4월 Meetup 기술 발표' },
+      { date: '05.20', title: 'GH-900 자격증 준비 스터디' },
     ],
   },
   {
     season: '하계방학',
     emoji: '☀️',
     items: [
-      { date: '06.23 – 08.30', title: 'MSA 달성 챌린지' },
-      { date: '06.25', title: '6월 Meetup' },
-      { date: '07.17 – 18', title: 'MT' },
+      { date: '06.23', title: 'MSA 250 클릭 챌린지 킥오프', hot: true },
+      { date: '07.15', title: 'LinkedIn 아티클 릴레이 캠페인' },
+      { date: '08.10', title: '중간 체크포인트(100 Clicks) 정산' },
     ],
   },
   {
     season: '2학기',
     emoji: '🍂',
     items: [
-      { date: '08.31 – 09.15', title: '2기 신규 부원 모집', hot: true },
-      { date: '09', title: 'OT & 연사자 모집' },
-      { date: '09', title: '9월 Meetup' },
-      { date: '10', title: '10월 Meetup' },
-      { date: '11', title: '11월 정기 발표' },
+      { date: '09.01', title: '250 클릭 완주자 1차 어워즈', hot: true },
+      { date: '09.15', title: '2기 신규 부원 모집 & 웰컴 세션' },
+      { date: '10.20', title: 'Microsoft Ignite Recap 세션' },
     ],
   },
   {
     season: '동계방학',
     emoji: '❄️',
     items: [
-      { date: '12', title: '워크샵' },
-      { date: '01', title: 'Microsoft Build Recap' },
-      { date: '02', title: '2월 정기 발표' },
+      { date: '12.18', title: 'LIT 연말 컨퍼런스 & 시상식' },
+      { date: '01.10', title: 'Microsoft Build Recap 세션' },
+      { date: '02.15', title: '차기 기수 로드맵 수립' },
     ],
   },
 ]
 
 export const faq = [
   {
-    q: '컴퓨터학부가 아니어도 지원할 수 있나요?',
-    a: '기술을 배우고 공유하는 데 관심이 있다면 학부와 학년에 상관없이 환영합니다. 발표 경험이 없어도 괜찮아요. 3번의 피드백이 함께합니다.',
+    q: 'MSA(Microsoft Student Ambassadors) 챌린지란 무엇인가요?',
+    a: 'Microsoft가 전 세계 학생 리더들을 육성하는 공식 프로그램의 일환으로, 각 부원에게 부여된 Microsoft Learn 고유 추천 링크를 통해 250명의 클릭/참여를 달성하는 챌린지입니다. 배운 내용을 사람들에게 나누고 기술을 널리 알리는 Tech Evangelism 활동의 공식 증명이 됩니다.',
   },
   {
-    q: '활동은 얼마나 자주 하나요?',
-    a: '월 1회 Meetup이 중심이고, 발표를 맡은 달에는 온라인 피드백 2회와 오프라인 리허설 1회가 추가됩니다. 그 외 스터디는 팀별 자율입니다.',
+    q: '내 고유 링크(250 클릭 링크)는 어떻게 만드나요?',
+    a: 'Microsoft Learn 포털(learn.microsoft.com)에 로그인 후, Ambassador 프로필 또는 특정 모듈 링크 뒤에 본인의 고유 태그(?wt.mc_id=studentamb_XXXXXX)를 붙여 발급받습니다. 발급받은 링크를 본 웹사이트의 [내 프로필]에 등록해 두면 언제든 쉽게 복사하고 공유할 수 있습니다.',
   },
   {
-    q: 'MSA(Microsoft Student Ambassadors)가 뭔가요?',
-    a: 'Microsoft가 운영하는 글로벌 학생 앰버서더 프로그램입니다. LIT에서 만든 발표 컨텐츠와 커뮤니티 활동을 공식 경력으로 인증받을 수 있어요.',
+    q: '체크포인트(30, 50, 100, 150, 200, 250) 리워드는 어떻게 받나요?',
+    a: '본인의 대시보드에서 클릭수를 업데이트하면 리더보드에 자동으로 뱃지가 부여됩니다. 30 클릭(커피 기프티콘), 50 클릭(편의점 기프티콘), 100 클릭(케익 기프티콘), 150 클릭(치킨 기프티콘), 200 클릭(자격증 응시비 지원), 250 클릭(MSA 달성) 시 운영진이 확인 후 리워드를 전달합니다.',
   },
   {
-    q: '발표 주제는 어떻게 정하나요?',
-    a: 'Microsoft Learn의 학습 경로에서 팀 또는 개인이 원하는 주제를 고릅니다. AI, 클라우드, 보안, DevOps 등 범위는 자유입니다.',
+    q: '내가 쓴 글 링크는 어떻게 공유하나요?',
+    a: 'LinkedIn, Velog, Tistory, Medium 등에 학습 글을 기고한 뒤, 웹 상단의 [새 글 공유하기] 버튼을 눌러 링크와 간단한 설명을 등록하면 LIT 피드에 즉시 노출됩니다. 내 글의 공유 링크(?author=내아이디)를 친구나 SNS에 보내면 내가 쓴 글들이 최우선으로 노출되면서도 동아리 전체 글도 함께 탐색할 수 있습니다.',
+  },
+  {
+    q: 'Azure 시스템으로 DB 관리가 된다는 것은 무슨 뜻인가요?',
+    a: '본 웹사이트는 현재 브라우저의 로컬 반응형 엔진(LocalStorage)으로 즉시 빠르고 부드럽게 동작하지만, 향후 전 부원의 영구 데이터 보존과 동시성을 위해 Azure Cosmos DB (NoSQL) 및 Azure Functions 서버리스 API와 바로 연결할 수 있도록 아키텍처가 설계되어 있습니다. 관리자 메뉴의 [Azure Cloud Sync]에서 데이터 백업 및 클라우드 연결 설정을 관리할 수 있습니다.',
   },
 ]

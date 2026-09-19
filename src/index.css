@@ -77,6 +77,16 @@
     body.has-cursor button {
       cursor: none;
     }
+    body.has-cursor input:not([type="checkbox"]):not([type="radio"]),
+    body.has-cursor textarea {
+      cursor: text !important;
+    }
+    body.has-cursor select,
+    body.has-cursor input[type="checkbox"],
+    body.has-cursor input[type="radio"],
+    body.has-cursor label {
+      cursor: pointer !important;
+    }
   }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {

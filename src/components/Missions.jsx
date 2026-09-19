@@ -1,0 +1,341 @@
+import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import {
+  Bell,
+  Calendar,
+  CheckCircle2,
+  Circle,
+  Clock,
+  Flame,
+  Gift,
+  Plus,
+  ShieldCheck,
+  Sparkles,
+  Trash2,
+  Users,
+  X,
+} from 'lucide-react'
+import { storageService } from '../services/storageService.js'
+import { Reveal, SectionHeading } from './ui/Primitives.jsx'
+
+const categoryStyles = {
+  notice: { label: '공지사항', color: 'bg-mint/15 text-mint border-mint/30' },
+  weekly: { label: '주간 미션', color: 'bg-pink/15 text-pink border-pink/30' },
+  community: { label: '커뮤니티', color: 'bg-mint/15 text-mint border-mint/30' },
+  boost: { label: '부스트 퀘스트', color: 'bg-violet/15 text-violet border-violet/30' },
+  special: { label: '특별 리워드', color: 'bg-amber/15 text-amber border-amber/30' },
+}
+
+export default function Missions({ onOpenAuth }) {
+  const [missions, setMissions] = useState(storageService.getMissions())
+  const [currentUser, setCurrentUser] = useState(storageService.getCurrentUser())
+  const [isAdmin, setIsAdmin] = useState(storageService.isAdmin())
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+
+  // 새 미션 폼
+  const [formData, setFormData] = useState({
+    title: '',
+    desc: '',
+    reward: '',
+    category: 'weekly',
+    deadline: '',
+  })
+
+  useEffect(() => {
+    const unsub = storageService.subscribe(() => {
+      setMissions(storageService.getMissions())
+      setCurrentUser(storageService.getCurrentUser())
+      setIsAdmin(storageService.isAdmin())
+    })
+    return unsub
+  }, [])
+
+  const handleToggleComplete = (missionId) => {
+    if (!currentUser) {
+      onOpenAuth()
+      return
+    }
+    storageService.toggleMissionCompletion(missionId, currentUser.handle)
+  }
+
+  const handleDeleteMission = (missionId) => {
+    if (confirm('정말 이 공지를 삭제하시겠습니까?')) {
+      storageService.deleteMission(missionId)
+    }
+  }
+
+  const handleCreateMission = (e) => {
+    e.preventDefault()
+    if (!formData.title || !formData.desc) return
+
+    storageService.addMission({
+      title: formData.title,
+      desc: formData.desc,
+      reward: formData.reward || '동아리 포인트',
+      category: formData.category,
+      deadline: formData.deadline || '2026-10-31',
+    })
+
+    setFormData({
+      title: '',
+      desc: '',
+      reward: '',
+      category: 'weekly',
+      deadline: '',
+    })
+    setIsAddModalOpen(false)
+  }
+
+  return (
+    <section id="missions" className="relative scroll-mt-24 px-6 py-24 sm:py-32">
+      <div className="mx-auto max-w-6xl">
+        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+          <SectionHeading
+            eyebrow="Notice"
+            title=""
+            accent="공지사항"
+            desc="LIT 공지사항과 주요 일정을 확인하세요."
+          />
+
+          {isAdmin && (
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-pink/50 bg-pink/15 px-3 py-1.5 font-mono text-xs text-pink">
+                <ShieldCheck className="h-3.5 w-3.5" />
+                관리자 모드 활성
+              </span>
+              <button
+                onClick={() => setIsAddModalOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-full bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))] px-4 py-2 text-xs font-bold text-bg transition-transform hover:scale-105"
+              >
+                <Plus className="h-4 w-4" />
+                새 공지 등록하기
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* 미션 카드 그리드 */}
+        <div className="mt-12 grid gap-5 md:grid-cols-2">
+          {missions.map((m, i) => {
+            const cat = categoryStyles[m.category] || categoryStyles.weekly
+            const isCompletedByMe = currentUser && (m.completedMemberHandles || []).includes(currentUser.handle)
+            const completedCount = (m.completedMemberHandles || []).length
+
+            return (
+              <motion.div
+                key={m.id}
+                initial={{ opacity: 0, y: 25 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.08 }}
+                className={`group glass relative flex flex-col justify-between overflow-hidden rounded-3xl p-6 sm:p-7 transition-all duration-300 hover:border-white/30 ${
+                  isCompletedByMe ? 'border-mint/30 bg-mint/[0.03]' : ''
+                }`}
+              >
+                <div>
+                  {/* Category, Deadline & Admin Delete */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className={`rounded-full border px-2.5 py-0.5 font-mono text-[10px] font-semibold ${cat.color}`}>
+                        {cat.label}
+                      </span>
+                      {m.deadline && (
+                        <span className="flex items-center gap-1 font-mono text-[10px] text-muted">
+                          <Clock className="h-3 w-3" /> {m.deadline}까지
+                        </span>
+                      )}
+                    </div>
+
+                    {isAdmin && (
+                      <button
+                        onClick={() => handleDeleteMission(m.id)}
+                        title="미션 공지 삭제"
+                        className="p-1 text-muted hover:text-pink transition-colors"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Title */}
+                  <h3 className="mt-4 font-display text-lg font-bold tracking-tight text-fg sm:text-xl">
+                    {m.title}
+                  </h3>
+
+                  {/* Description */}
+                  <p className="mt-2.5 text-xs leading-relaxed text-muted sm:text-sm">
+                    {m.desc}
+                  </p>
+
+                  {/* Reward Box */}
+                  <div className="mt-5 flex items-center gap-2 rounded-xl bg-white/[0.03] border border-line p-3">
+                    <Gift className="h-4 w-4 text-amber shrink-0" />
+                    <div className="text-xs">
+                      <span className="font-mono text-[10px] text-muted mr-1.5 uppercase">보상:</span>
+                      <span className="font-semibold text-fg/90">{m.reward}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer: Completion status & Participated count */}
+                <div className="mt-6 flex items-center justify-between border-t border-line/70 pt-4">
+                  <div className="flex items-center gap-1.5 font-mono text-xs text-muted">
+                    <Users className="h-3.5 w-3.5" />
+                    <span>{completedCount}명 완료</span>
+                  </div>
+
+                  <button
+                    onClick={() => handleToggleComplete(m.id)}
+                    className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-semibold transition-all ${
+                      isCompletedByMe
+                        ? 'border border-mint/50 bg-mint/15 text-mint shadow-[0_0_12px_rgba(94,240,214,0.2)]'
+                        : 'glass text-muted hover:text-fg hover:border-white/30'
+                    }`}
+                  >
+                    {isCompletedByMe ? (
+                      <>
+                        <CheckCircle2 className="h-4 w-4 text-mint" />
+                        <span>미션 완료됨</span>
+                      </>
+                    ) : (
+                      <>
+                        <Circle className="h-4 w-4" />
+                        <span>완료 인증하기</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </motion.div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* 새 미션 공지 등록 모달 (관리자용) */}
+      <AnimatePresence>
+        {isAddModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsAddModalOpen(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-md"
+            />
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-lg rounded-3xl border border-line bg-surface p-7 shadow-2xl"
+            >
+              <div className="flex items-center justify-between border-b border-line pb-4">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="h-5 w-5 text-pink" />
+                  <h3 className="font-display text-xl font-bold text-fg">새 공지 등록</h3>
+                </div>
+                <button
+                  onClick={() => setIsAddModalOpen(false)}
+                  className="rounded-full p-1 text-muted hover:text-fg"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleCreateMission} className="mt-5 space-y-4">
+                <div>
+                  <label className="block font-mono text-[11px] uppercase tracking-wider text-muted mb-1.5">
+                    공지 제목 *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    placeholder="예: 📢 [공지] 이번 주 챌린지 일정 및 주요 안내"
+                    className="glass w-full rounded-xl px-3.5 py-2.5 text-xs text-fg focus:border-pink/50 focus:outline-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-mono text-[11px] uppercase tracking-wider text-muted mb-1.5">
+                      공지 분류 *
+                    </label>
+                    <select
+                      value={formData.category}
+                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                      className="glass w-full rounded-xl px-3.5 py-2.5 text-xs text-fg focus:border-pink/50 focus:outline-none bg-surface"
+                    >
+                      <option value="notice">일반 공지</option>
+                      <option value="weekly">주간 미션</option>
+                      <option value="community">커뮤니티</option>
+                      <option value="boost">부스트 퀘스트</option>
+                      <option value="special">특별 리워드</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block font-mono text-[11px] uppercase tracking-wider text-muted mb-1.5">
+                      마감일
+                    </label>
+                    <input
+                      type="date"
+                      value={formData.deadline}
+                      onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
+                      className="glass w-full rounded-xl px-3.5 py-2.5 text-xs text-fg focus:border-pink/50 focus:outline-none bg-surface"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block font-mono text-[11px] uppercase tracking-wider text-muted mb-1.5">
+                    달성 보상 / 혜택 (선택)
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.reward}
+                    onChange={(e) => setFormData({ ...formData, reward: e.target.value })}
+                    placeholder="예: ☕ 스타벅스 커피 쿠폰 또는 활동 인증"
+                    className="glass w-full rounded-xl px-3.5 py-2.5 text-xs text-fg focus:border-pink/50 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-mono text-[11px] uppercase tracking-wider text-muted mb-1.5">
+                    공지 상세 내용 *
+                  </label>
+                  <textarea
+                    rows={4}
+                    required
+                    value={formData.desc}
+                    onChange={(e) => setFormData({ ...formData, desc: e.target.value })}
+                    placeholder="부원들에게 안내할 공지사항이나 미션 내용을 상세히 적어주세요."
+                    className="glass w-full rounded-xl px-3.5 py-2.5 text-xs text-fg focus:border-pink/50 focus:outline-none"
+                  />
+                </div>
+
+                <div className="mt-6 flex justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsAddModalOpen(false)}
+                    className="glass rounded-xl px-4 py-2.5 text-xs text-muted hover:text-fg"
+                  >
+                    취소
+                  </button>
+                  <button
+                    type="submit"
+                    className="rounded-xl bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))] px-5 py-2.5 text-xs font-bold text-bg hover:opacity-90"
+                  >
+                    공지 등록하기
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </section>
+  )
+}
+

@@ -1,4 +1,4 @@
-import { ArrowUpRight, Github, Instagram, MapPin, MessageCircle, NotebookText } from 'lucide-react'
+import { ArrowUpRight, Github, Instagram, MessageCircle, NotebookText } from 'lucide-react'
 import Logo from './ui/Logo.jsx'
 import { links, nav } from '../data/site.js'
 
@@ -13,21 +13,21 @@ export default function Footer() {
   return (
     <footer className="relative overflow-hidden border-t border-line">
       <div className="mx-auto max-w-6xl px-6 pb-10 pt-20">
-        <div className="grid gap-12 md:grid-cols-[1.4fr_1fr_1fr]">
-          <div>
-            <Logo className="text-6xl" />
-            <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted">
-              Learn It, Teach. 경북대학교 컴퓨터학부 IT 기술 발표 동아리. 기술을 배우고, 발표하고, 전파합니다.
-            </p>
-            <div className="mt-6 flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-muted">
-              <MapPin className="h-3.5 w-3.5" /> KNU IT5호관 B102
+        <div className="grid gap-10 sm:gap-12 md:grid-cols-[2fr_1fr_1.2fr]">
+          <div className="max-w-md">
+            <Logo className="text-5xl sm:text-6xl" />
+            <div className="mt-4 text-sm leading-relaxed text-muted break-keep">
+              <p className="font-medium text-fg/90">Learn It, Teach.</p>
+              <p className="mt-1">
+                경북대학교 IT 기술 발표 동아리 LIT의 MSA 챌린지 플랫폼.
+              </p>
             </div>
           </div>
 
           <div>
             <p className="font-mono text-xs uppercase tracking-[0.25em] text-muted">Menu</p>
             <ul className="mt-5 space-y-3">
-              {[...nav, { label: 'FAQ', href: '#faq' }, { label: 'Recruit', href: '#recruit' }].map((n) => (
+              {nav.map((n) => (
                 <li key={n.href}>
                   <a href={n.href} className="text-sm text-fg/80 transition-colors hover:text-fg">
                     {n.label}
@@ -57,6 +57,16 @@ export default function Footer() {
                   </a>
                 </li>
               ))}
+              <li>
+                <a
+                  href={links.msaOfficial}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-xs text-muted underline-offset-4 transition-colors hover:text-fg hover:underline"
+                >
+                  Microsoft Student Ambassadors Portal ↗
+                </a>
+              </li>
               <li>
                 <a
                   href={links.mslearn}

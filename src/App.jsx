@@ -8,19 +8,28 @@ import ScrollProgress from './components/ScrollProgress.jsx'
 import Nav from './components/Nav.jsx'
 import Hero from './components/Hero.jsx'
 import Marquee from './components/Marquee.jsx'
-import Manifesto from './components/Manifesto.jsx'
-import Activities from './components/Activities.jsx'
-import Process from './components/Process.jsx'
-import Stats from './components/Stats.jsx'
-import Talks from './components/Talks.jsx'
-import Roadmap from './components/Roadmap.jsx'
+import ChallengeHUD from './components/ChallengeHUD.jsx'
+import Leaderboard from './components/Leaderboard.jsx'
+import ArticleHub from './components/ArticleHub.jsx'
+import Missions from './components/Missions.jsx'
 import Faq from './components/Faq.jsx'
-import Recruit from './components/Recruit.jsx'
 import Footer from './components/Footer.jsx'
+
+import AuthModal from './components/AuthModal.jsx'
+import ProfileModal from './components/ProfileModal.jsx'
+import AzureSyncModal from './components/AzureSyncModal.jsx'
+import { storageService } from './services/storageService.js'
 
 export default function App() {
   const [ready, setReady] = useState(false)
+  const [isAuthOpen, setIsAuthOpen] = useState(false)
+  const [authTab, setAuthTab] = useState('login')
+  const [isProfileOpen, setIsProfileOpen] = useState(false)
+  const [profileTarget, setProfileTarget] = useState(null)
+  const [isAzureOpen, setIsAzureOpen] = useState(false)
+  const [authorFilter, setAuthorFilter] = useState(null)
 
+  // Lenis smooth scroll
   useEffect(() => {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (reduce) return
@@ -37,26 +46,113 @@ export default function App() {
     }
   }, [])
 
+  // URL query parameter (?author=... 또는 ?member=...) 감지
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const authorParam = params.get('author') || params.get('member')
+    if (authorParam) {
+      setAuthorFilter(authorParam)
+      setTimeout(() => {
+        const el = document.getElementById('articles')
+        if (el) el.scrollIntoView({ behavior: 'smooth' })
+      }, 700)
+    }
+  }, [])
+
+  const handleFilterAuthor = (handle) => {
+    setAuthorFilter(handle)
+    const el = document.getElementById('articles')
+    if (el) el.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  const handleClearAuthorFilter = () => {
+    setAuthorFilter(null)
+  }
+
+  const handleSelectMember = (handle) => {
+    storageService.setCurrentUser(handle)
+  }
+
+  const handleOpenAuth = (tab = 'login') => {
+    setAuthTab(tab)
+    setIsAuthOpen(true)
+  }
+
+  const handleOpenProfile = (member = null) => {
+    setProfileTarget(member)
+    setIsProfileOpen(true)
+  }
+
+  const handleCloseProfile = () => {
+    setIsProfileOpen(false)
+    setProfileTarget(null)
+  }
+
   return (
     <MotionConfig reducedMotion="user">
       <Preloader onDone={() => setReady(true)} />
       <Cursor />
       <ScrollProgress />
       <div className="noise" />
-      <Nav />
+
+      <Nav
+        onOpenAuth={() => handleOpenAuth('login')}
+        onOpenProfile={() => handleOpenProfile(null)}
+        onOpenAzure={() => setIsAzureOpen(true)}
+      />
+
       <main>
         <Hero ready={ready} />
         <Marquee />
-        <Manifesto />
-        <Activities />
-        <Process />
-        <Stats />
-        <Talks />
-        <Roadmap />
+
+        {/* 1. 챌린지 대시보드 */}
+        <ChallengeHUD
+          onOpenProfile={() => handleOpenProfile(null)}
+          onOpenAuth={() => handleOpenAuth('login')}
+          onFilterAuthor={handleFilterAuthor}
+        />
+
+        {/* 2. 체크포인트 리더보드 & 보상 (관리자 수정 및 부원 등록 연동) */}
+        <Leaderboard
+          onFilterAuthor={handleFilterAuthor}
+          onSelectMember={handleSelectMember}
+          onEditMember={(m) => handleOpenProfile(m)}
+          onOpenAuth={(tab) => handleOpenAuth(tab)}
+        />
+
+        {/* 3. 아티클 & 챌린지 링크 공유 피드 */}
+        <ArticleHub
+          authorFilter={authorFilter}
+          onClearAuthorFilter={handleClearAuthorFilter}
+          onFilterAuthor={handleFilterAuthor}
+        />
+
+        {/* 4. 운영진 공지사항 */}
+        <Missions onOpenAuth={() => handleOpenAuth('login')} />
+
+        {/* 5. 챌린지 FAQ */}
         <Faq />
-        <Recruit />
       </main>
+
       <Footer />
+
+      {/* 모달 컴포넌트들 */}
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        initialTab={authTab}
+      />
+      <ProfileModal
+        isOpen={isProfileOpen}
+        onClose={handleCloseProfile}
+        targetMember={profileTarget}
+      />
+      <AzureSyncModal
+        isOpen={isAzureOpen}
+        onClose={() => setIsAzureOpen(false)}
+        onEditMember={(member) => handleOpenProfile(member)}
+        onOpenRegister={() => handleOpenAuth('register')}
+      />
     </MotionConfig>
   )
 }

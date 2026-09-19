@@ -6,9 +6,15 @@ import useMediaQuery from '../hooks/useMediaQuery.js'
 import { process } from '../data/site.js'
 
 const modeColor = {
-  Online: 'text-mint border-mint/30 bg-mint/10',
-  Offline: 'text-pink border-pink/30 bg-pink/10',
-  Stage: 'text-amber border-amber/30 bg-amber/10',
+  'MS Learn': 'text-mint border-mint/30 bg-mint/10',
+  'Hands-on': 'text-pink border-pink/30 bg-pink/10',
+  'Writing': 'text-violet border-violet/30 bg-violet/10',
+  'LIT Feed': 'text-amber border-amber/30 bg-amber/10',
+  '🌱 30 달성': 'text-mint border-mint/30 bg-mint/10',
+  '🌿 50 달성': 'text-amber border-amber/30 bg-amber/10',
+  '🪴 100 달성': 'text-pink border-pink/30 bg-pink/10',
+  '🌳 150 · 🍎 200': 'text-violet border-violet/30 bg-violet/10',
+  '👑 250 MSA': 'text-amber border-amber/30 bg-amber/10',
 }
 
 function StepCard({ s, i, className = '' }) {
@@ -78,10 +84,10 @@ function Horizontal() {
       <div className="sticky top-0 flex h-screen flex-col justify-center overflow-hidden">
         <div className="mx-auto w-full max-w-6xl px-6">
           <SectionHeading
-            eyebrow="How a talk is born"
-            title="한 번의 발표가"
-            accent="만들어지는 8단계"
-            desc="혼자 준비하지 않습니다. 설계도부터 리허설까지, 세 번의 피드백이 함께합니다."
+            eyebrow="Roadmap to 250 Clicks"
+            title="MSA 250 완주로 가는"
+            accent="8단계 여정"
+            desc="혼자 달리지 않습니다. 학습부터 아티클 기고, 체크포인트 돌파와 최종 공식 인증까지 LIT이 함께합니다."
           />
         </div>
 
@@ -98,15 +104,15 @@ function Horizontal() {
           ))}
           <div className="glass flex w-[300px] flex-col items-start justify-center rounded-3xl p-8">
             <p className="font-display text-3xl font-bold leading-tight">
-              그리고, <span className="text-gradient">다음 달</span>
+              그리고, <span className="text-gradient">250 완주</span>
               <br />
-              다시 무대로.
+              공식 앰버서더로.
             </p>
             <a
-              href="#talks"
+              href="#dashboard"
               className="mt-6 inline-flex items-center gap-2 text-sm text-muted transition-colors hover:text-fg"
             >
-              발표 주제 보기 <ArrowRight className="h-4 w-4" />
+              내 챌린지 시작하기 <ArrowRight className="h-4 w-4" />
             </a>
           </div>
         </motion.div>
@@ -132,10 +138,10 @@ function Vertical() {
     <div className="px-6 py-24">
       <div className="mx-auto max-w-6xl">
         <SectionHeading
-          eyebrow="How a talk is born"
-          title="한 번의 발표가"
-          accent="만들어지는 8단계"
-          desc="혼자 준비하지 않습니다. 설계도부터 리허설까지, 세 번의 피드백이 함께합니다."
+          eyebrow="Roadmap to 250 Clicks"
+          title="MSA 250 완주로 가는"
+          accent="8단계 여정"
+          desc="혼자 달리지 않습니다. 학습부터 아티클 기고, 체크포인트 돌파와 최종 공식 인증까지 LIT이 함께합니다."
         />
         <div className="relative mt-12 space-y-4 before:absolute before:left-6 before:top-0 before:h-full before:w-px before:bg-white/10">
           {process.map((s, i) => (
