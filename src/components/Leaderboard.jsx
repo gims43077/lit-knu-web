@@ -4,7 +4,6 @@ import {
   Award,
   ChevronRight,
   Edit3,
-  ExternalLink,
   Flame,
   Plus,
   Search,
@@ -191,8 +190,7 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
                             {m.name}
                           </div>
                           <p className="mt-1 text-xs text-muted truncate">
-                            <span className="font-mono text-[11px] text-muted mr-1.5">@{m.handle}</span>
-                            <span>· {m.role} · {m.major}</span>
+                            {[m.role, m.major].filter(Boolean).join(' · ')}
                           </p>
                         </div>
                       </div>
@@ -307,16 +305,6 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
                           <span>글 모음</span>
                           <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted" />
                         </button>
-
-                        <a
-                          href={m.msLink}
-                          target="_blank"
-                          rel="noreferrer"
-                          title="부원의 MS Learn 챌린지 링크 열기 (클릭 지원)"
-                          className="glass inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-muted transition-colors hover:text-mint hover:border-mint/40"
-                        >
-                          <ExternalLink className="h-3.5 w-3.5" />
-                        </a>
                       </div>
                     </div>
                   </div>

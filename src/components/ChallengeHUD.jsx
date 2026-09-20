@@ -325,12 +325,6 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
                         {progressPercent}%
                       </span>
                     </div>
-
-                    {isFinished && (
-                      <p className="mt-1 text-xs text-muted sm:text-sm">
-                        <span className="text-mint font-semibold">🎉 축하합니다! MSA 공식 앰버서더 자격을 충족했습니다!</span>
-                      </p>
-                    )}
                   </div>
 
                   {/* Quick Increment buttons */}
@@ -424,7 +418,7 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
                       Contributor ID
                       {copied && <span className="text-mint font-sans font-bold normal-case text-[10px]">· 기본 링크 복사됨!</span>}
                     </span>
-                    <span className="font-mono text-sm sm:text-base font-bold tracking-tight text-mint transition-colors group-hover:text-white truncate block mt-0.5">
+                    <span className="font-mono text-sm sm:text-base font-bold tracking-tight text-muted transition-colors group-hover:text-fg truncate block mt-0.5">
                       {myContributorId}
                     </span>
                   </div>
@@ -433,19 +427,19 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
                     <button
                       type="button"
                       onClick={() => setIsUrlGenOpen((v) => !v)}
-                      className="group inline-flex h-11 w-full lg:w-36 xl:w-40 items-center justify-center gap-1.5 sm:gap-2 rounded-xl bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))] px-2 sm:px-3 text-xs sm:text-sm font-bold text-bg transition-all duration-300 hover:opacity-90 hover:scale-[1.02] active:scale-[0.98]"
+                      className="group inline-flex h-11 w-full lg:w-36 xl:w-40 items-center justify-center gap-1.5 sm:gap-2 rounded-xl border border-white/15 bg-white/10 px-2 sm:px-3 text-xs sm:text-sm font-semibold text-fg transition-all duration-300 hover:bg-white/20 hover:border-white/30 hover:scale-[1.02] active:scale-[0.98]"
                     >
-                      <Link2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                      <Link2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 text-muted group-hover:text-fg transition-colors" />
                       <span className="truncate">URL 생성기</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={() => onFilterAuthor(currentUser.handle)}
-                      className="group inline-flex h-11 w-full lg:w-36 xl:w-40 items-center justify-center gap-1.5 sm:gap-2 rounded-xl bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))] px-2 sm:px-3 text-xs sm:text-sm font-bold text-bg transition-all duration-300 hover:opacity-90 hover:scale-[1.02] active:scale-[0.98]"
+                      className="group inline-flex h-11 w-full lg:w-36 xl:w-40 items-center justify-center gap-1.5 sm:gap-2 rounded-xl border border-white/15 bg-white/10 px-2 sm:px-3 text-xs sm:text-sm font-semibold text-fg transition-all duration-300 hover:bg-white/20 hover:border-white/30 hover:scale-[1.02] active:scale-[0.98]"
                     >
                       <span className="truncate">내가 쓴 글 보기</span>
-                      <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 transition-transform duration-300 group-hover:translate-x-0.5" />
+                      <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 text-muted group-hover:text-fg transition-transform duration-300 group-hover:translate-x-0.5" />
                     </button>
                   </div>
                 </div>
