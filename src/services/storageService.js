@@ -551,14 +551,21 @@ export async function syncFromCloud() {
   if (isSyncing || typeof window === 'undefined') return
   isSyncing = true
   try {
-    const res = await fetch('/api/members')
-    if (res.ok) {
-      const json = await res.json()
+    // 4개 데이터 타입을 병렬로 동시 조회
+    const [membersRes, articlesRes, missionsRes, faqsRes] = await Promise.all([
+      fetch('/api/members').catch(() => null),
+      fetch('/api/articles').catch(() => null),
+      fetch('/api/missions').catch(() => null),
+      fetch('/api/faqs').catch(() => null),
+    ])
+
+    let didChange = false
+
+    // ── Members 동기화 (기존 SSOT 로직) ──
+    if (membersRes && membersRes.ok) {
+      const json = await membersRes.json()
       const cloudMembers = Array.isArray(json.data) ? json.data : Array.isArray(json.members) ? json.members : []
       if (cloudMembers.length > 0) {
-        // Cosmos DB가 단일 진실 공급원(Single Source of Truth)입니다.
-        // Cosmos DB에서 삭제된 부원은 웹에서도 즉시 삭제되어야 하므로,
-        // 클라우드 멤버 목록으로 로컬 스토리지를 100% 동기화합니다.
         const cleanedMembers = cloudMembers.map((m) => {
           const rawClicks = Number(m.clicks)
           const clicks = isNaN(rawClicks) ? 0 : Math.max(0, rawClicks)
@@ -592,20 +599,18 @@ export async function syncFromCloud() {
         const newMembersStr = JSON.stringify(cleanedMembers)
         if (currentLocalStr !== newMembersStr) {
           localStorage.setItem(STORAGE_KEYS.MEMBERS, newMembersStr)
-          notify()
+          didChange = true
         }
 
-        // 현재 로그인된 사용자가 Cosmos DB에서 삭제되었다면 자동 로그아웃
         const currentHandle = localStorage.getItem(STORAGE_KEYS.CURRENT_USER)
         if (currentHandle && currentHandle.toUpperCase() !== 'LIT') {
           const stillExists = cleanedMembers.some((cm) => cm.handle.toLowerCase() === currentHandle.toLowerCase())
           if (!stillExists) {
             localStorage.removeItem(STORAGE_KEYS.CURRENT_USER)
-            notify()
+            didChange = true
           }
         }
       } else {
-        // Cosmos DB가 완전히 비어있는 초기 상태인 경우에만 기본 부원 데이터 전송
         const local = storageService.getMembers()
         if (local.length > 0) {
           fetch('/api/sync', {
@@ -616,6 +621,105 @@ export async function syncFromCloud() {
         }
       }
     }
+
+    // ── Articles 동기화 (Cosmos DB → localStorage 덮어쓰기) ──
+    if (articlesRes && articlesRes.ok) {
+      const json = await articlesRes.json()
+      const cloudArticles = Array.isArray(json.data) ? json.data : []
+      if (cloudArticles.length > 0) {
+        const cleaned = cloudArticles.map((a) => ({
+          id: a.id, title: a.title || '', excerpt: a.excerpt || '',
+          url: a.url || '', learnUrl: a.learnUrl || '', platform: a.platform || 'linkedin',
+          authorHandle: a.authorHandle || '', authorName: a.authorName || '',
+          authorAvatar: a.authorAvatar || '', tags: a.tags || [], likes: a.likes || 0,
+          createdAt: a.createdAt || '',
+        }))
+        const localStr = localStorage.getItem(STORAGE_KEYS.ARTICLES)
+        const newStr = JSON.stringify(cleaned)
+        if (localStr !== newStr) {
+          localStorage.setItem(STORAGE_KEYS.ARTICLES, newStr)
+          didChange = true
+        }
+      } else {
+        // 클라우드에 글이 없으면 기본 데이터를 시딩
+        const localArticles = storageService.getArticles()
+        if (localArticles.length > 0) {
+          for (const art of localArticles) {
+            fetch('/api/articles', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ ...art, type: 'article', handle: '__articles' }),
+            }).catch(() => {})
+          }
+        }
+      }
+    }
+
+    // ── Missions 동기화 (Cosmos DB → localStorage 덮어쓰기) ──
+    if (missionsRes && missionsRes.ok) {
+      const json = await missionsRes.json()
+      const cloudMissions = Array.isArray(json.data) ? json.data : []
+      if (cloudMissions.length > 0) {
+        const cleaned = cloudMissions.map((m) => ({
+          id: m.id,
+          title: (m.title || '').replace(/\[주간 미션\]/g, '').replace(/\[동료 피드백\]/g, '')
+            .replace(/\[부스트 퀘스트\]/g, '').replace(/\[마일스톤 챌린지\]/g, '').replace(/\s+/g, ' ').trim(),
+          desc: m.desc || '', reward: m.reward || '', category: m.category || 'weekly',
+          deadline: m.deadline || '', completedMemberHandles: m.completedMemberHandles || [],
+          active: m.active !== undefined ? m.active : true,
+        }))
+        const localStr = localStorage.getItem(STORAGE_KEYS.MISSIONS)
+        const newStr = JSON.stringify(cleaned)
+        if (localStr !== newStr) {
+          localStorage.setItem(STORAGE_KEYS.MISSIONS, newStr)
+          didChange = true
+        }
+      } else {
+        const localMissions = storageService.getMissions()
+        if (localMissions.length > 0) {
+          for (const mis of localMissions) {
+            fetch('/api/missions', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ ...mis, type: 'mission', handle: '__missions' }),
+            }).catch(() => {})
+          }
+        }
+      }
+    }
+
+    // ── FAQs 동기화 (Cosmos DB → localStorage 덮어쓰기) ──
+    if (faqsRes && faqsRes.ok) {
+      const json = await faqsRes.json()
+      const cloudFaqs = Array.isArray(json.data) ? json.data : []
+      if (cloudFaqs.length > 0) {
+        const cleaned = cloudFaqs
+          .filter((item) => !item.q?.includes('Azure 시스템으로 DB 관리'))
+          .map((item, idx) => ({
+            id: item.id || `faq-${idx + 1}`, q: item.q || '', a: item.a || '',
+            createdAt: item.createdAt || '', updatedAt: item.updatedAt || '',
+          }))
+        const localStr = localStorage.getItem(STORAGE_KEYS.FAQS)
+        const newStr = JSON.stringify(cleaned)
+        if (localStr !== newStr) {
+          localStorage.setItem(STORAGE_KEYS.FAQS, newStr)
+          didChange = true
+        }
+      } else {
+        const localFaqs = storageService.getFaqs()
+        if (localFaqs.length > 0) {
+          for (const faq of localFaqs) {
+            fetch('/api/faqs', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ ...faq, type: 'faq', handle: '__faqs' }),
+            }).catch(() => {})
+          }
+        }
+      }
+    }
+
+    if (didChange) notify()
   } catch (err) {
     console.debug('[Azure Sync] Local-first mode active:', err.message)
   } finally {
@@ -1024,7 +1128,7 @@ export const storageService = {
     return DEFAULT_ARTICLES
   },
 
-  addArticle(article) {
+  async addArticle(article) {
     const articles = this.getArticles()
     const author = this.getMember(article.authorHandle) || this.getCurrentUser()
     const newArt = {
@@ -1034,9 +1138,9 @@ export const storageService = {
       url: article.url,
       learnUrl: article.learnUrl || '',
       platform: article.platform || 'linkedin',
-      authorHandle: author.handle,
-      authorName: author.name,
-      authorAvatar: author.avatar,
+      authorHandle: author?.handle || article.authorHandle || 'LIT',
+      authorName: author?.name || article.authorName || 'LIT 부원',
+      authorAvatar: author?.avatar || article.authorAvatar || AVATAR_PRESETS[0],
       tags: Array.isArray(article.tags)
         ? article.tags
         : (article.tags || '').split(',').map((t) => t.trim()).filter(Boolean),
@@ -1046,30 +1150,64 @@ export const storageService = {
     articles.unshift(newArt)
     localStorage.setItem(STORAGE_KEYS.ARTICLES, JSON.stringify(articles))
     notify()
+
+    try {
+      await fetch('/api/articles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...newArt, type: 'article', handle: '__articles' }),
+      })
+    } catch (e) {
+      console.warn('[Azure Sync] addArticle error:', e)
+    }
+
     return newArt
   },
 
-  toggleArticleLike(articleId) {
+  async toggleArticleLike(articleId) {
     const articles = this.getArticles()
+    let target = null
     const updated = articles.map((a) => {
       if (a.id === articleId) {
-        return { ...a, likes: (a.likes || 0) + 1 }
+        target = { ...a, likes: (a.likes || 0) + 1 }
+        return target
       }
       return a
     })
     localStorage.setItem(STORAGE_KEYS.ARTICLES, JSON.stringify(updated))
     notify()
+
+    if (target) {
+      try {
+        await fetch('/api/articles', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...target, type: 'article', handle: '__articles' }),
+        })
+      } catch (e) {
+        console.warn('[Azure Sync] toggleArticleLike error:', e)
+      }
+    }
   },
 
-  deleteArticle(articleId) {
+  async deleteArticle(articleId) {
     const articles = this.getArticles().filter((a) => a.id !== articleId)
     localStorage.setItem(STORAGE_KEYS.ARTICLES, JSON.stringify(articles))
     notify()
+
+    try {
+      await fetch(`/api/articles?id=${encodeURIComponent(articleId)}`, {
+        method: 'DELETE',
+      })
+    } catch (e) {
+      console.warn('[Azure Sync] deleteArticle error:', e)
+    }
   },
 
-  updateArticle(articleId, partial) {
+  async updateArticle(articleId, partial) {
     const articles = this.getArticles()
     const author = partial.authorHandle ? this.getMember(partial.authorHandle) : null
+    let target = null
     const updated = articles.map((a) => {
       if (a.id === articleId) {
         const rawTags = partial.tags !== undefined ? partial.tags : a.tags
@@ -1078,19 +1216,33 @@ export const storageService = {
           : typeof rawTags === 'string'
           ? rawTags.split(',').map((t) => t.trim()).filter(Boolean)
           : a.tags
-        return {
+        target = {
           ...a,
           ...partial,
           authorName: author ? author.name : (partial.authorName || a.authorName),
           authorAvatar: author ? author.avatar : (partial.authorAvatar || a.authorAvatar),
           tags,
         }
+        return target
       }
       return a
     })
     localStorage.setItem(STORAGE_KEYS.ARTICLES, JSON.stringify(updated))
     notify()
-    return updated.find((a) => a.id === articleId)
+
+    if (target) {
+      try {
+        await fetch('/api/articles', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...target, type: 'article', handle: '__articles' }),
+        })
+      } catch (e) {
+        console.warn('[Azure Sync] updateArticle error:', e)
+      }
+    }
+
+    return target
   },
 
   // 4. Missions
@@ -1119,7 +1271,7 @@ export const storageService = {
     return DEFAULT_MISSIONS
   },
 
-  addMission(mission) {
+  async addMission(mission) {
     const missions = this.getMissions()
     const newMis = {
       id: `mis-${Date.now()}`,
@@ -1134,26 +1286,65 @@ export const storageService = {
     missions.unshift(newMis)
     localStorage.setItem(STORAGE_KEYS.MISSIONS, JSON.stringify(missions))
     notify()
+
+    try {
+      await fetch('/api/missions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...newMis, type: 'mission', handle: '__missions' }),
+      })
+    } catch (e) {
+      console.warn('[Azure Sync] addMission error:', e)
+    }
+
     return newMis
   },
 
-  updateMission(missionId, partial) {
+  async updateMission(missionId, partial) {
     const missions = this.getMissions()
-    const updated = missions.map((m) => (m.id === missionId ? { ...m, ...partial } : m))
+    let target = null
+    const updated = missions.map((m) => {
+      if (m.id === missionId) {
+        target = { ...m, ...partial }
+        return target
+      }
+      return m
+    })
     localStorage.setItem(STORAGE_KEYS.MISSIONS, JSON.stringify(updated))
     notify()
+
+    if (target) {
+      try {
+        await fetch('/api/missions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...target, type: 'mission', handle: '__missions' }),
+        })
+      } catch (e) {
+        console.warn('[Azure Sync] updateMission error:', e)
+      }
+    }
   },
 
-  deleteMission(missionId) {
+  async deleteMission(missionId) {
     const missions = this.getMissions().filter((m) => m.id !== missionId)
     localStorage.setItem(STORAGE_KEYS.MISSIONS, JSON.stringify(missions))
     notify()
+
+    try {
+      await fetch(`/api/missions?id=${encodeURIComponent(missionId)}`, {
+        method: 'DELETE',
+      })
+    } catch (e) {
+      console.warn('[Azure Sync] deleteMission error:', e)
+    }
   },
 
-  toggleMissionCompletion(missionId, memberHandle) {
+  async toggleMissionCompletion(missionId, memberHandle) {
     const cleanHandle = String(memberHandle || '').trim().toLowerCase()
     if (!cleanHandle) return
     const missions = this.getMissions()
+    let target = null
     const updated = missions.map((m) => {
       if (m.id === missionId) {
         const rawHandles = Array.isArray(m.completedMemberHandles) ? m.completedMemberHandles : []
@@ -1164,13 +1355,27 @@ export const storageService = {
         } else {
           nextHandles = [...rawHandles, memberHandle]
         }
-        return { ...m, completedMemberHandles: nextHandles }
+        target = { ...m, completedMemberHandles: nextHandles }
+        return target
       }
       return m
     })
     localStorage.setItem(STORAGE_KEYS.MISSIONS, JSON.stringify(updated))
     notify()
-    return updated.find((m) => m.id === missionId)
+
+    if (target) {
+      try {
+        await fetch('/api/missions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...target, type: 'mission', handle: '__missions' }),
+        })
+      } catch (e) {
+        console.warn('[Azure Sync] toggleMissionCompletion error:', e)
+      }
+    }
+
+    return target
   },
 
   // 5. FAQs (자주 묻는 질문 - 관리자 CRUD)
@@ -1195,7 +1400,7 @@ export const storageService = {
     return DEFAULT_FAQS
   },
 
-  addFaq(faqItem) {
+  async addFaq(faqItem) {
     const faqs = this.getFaqs()
     const newFaq = {
       id: `faq-${Date.now()}`,
@@ -1206,31 +1411,66 @@ export const storageService = {
     faqs.push(newFaq)
     localStorage.setItem(STORAGE_KEYS.FAQS, JSON.stringify(faqs))
     notify()
+
+    try {
+      await fetch('/api/faqs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...newFaq, type: 'faq', handle: '__faqs' }),
+      })
+    } catch (e) {
+      console.warn('[Azure Sync] addFaq error:', e)
+    }
+
     return newFaq
   },
 
-  updateFaq(faqId, partial) {
+  async updateFaq(faqId, partial) {
     const faqs = this.getFaqs()
+    let target = null
     const updated = faqs.map((item) => {
       if (item.id === faqId) {
-        return {
+        target = {
           ...item,
           q: partial.q !== undefined ? partial.q.trim() : item.q,
           a: partial.a !== undefined ? partial.a.trim() : item.a,
           updatedAt: new Date().toISOString(),
         }
+        return target
       }
       return item
     })
     localStorage.setItem(STORAGE_KEYS.FAQS, JSON.stringify(updated))
     notify()
-    return updated.find((f) => f.id === faqId)
+
+    if (target) {
+      try {
+        await fetch('/api/faqs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...target, type: 'faq', handle: '__faqs' }),
+        })
+      } catch (e) {
+        console.warn('[Azure Sync] updateFaq error:', e)
+      }
+    }
+
+    return target
   },
 
-  deleteFaq(faqId) {
+  async deleteFaq(faqId) {
     const faqs = this.getFaqs().filter((item) => item.id !== faqId)
     localStorage.setItem(STORAGE_KEYS.FAQS, JSON.stringify(faqs))
     notify()
+
+    try {
+      await fetch(`/api/faqs?id=${encodeURIComponent(faqId)}`, {
+        method: 'DELETE',
+      })
+    } catch (e) {
+      console.warn('[Azure Sync] deleteFaq error:', e)
+    }
+
     return true
   },
 

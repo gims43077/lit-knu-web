@@ -36,6 +36,7 @@ export default function ArticleHub({ authorFilter, onClearAuthorFilter, onFilter
   const [selectedTag, setSelectedTag] = useState('ALL')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingArticleId, setEditingArticleId] = useState(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   // 글 작성/수정 폼 상태
   const [formData, setFormData] = useState({
@@ -89,9 +90,9 @@ export default function ArticleHub({ authorFilter, onClearAuthorFilter, onFilter
   const authorMember = authorFilter ? members.find((m) => m.handle === authorFilter) : null
 
   // 좋아요 핸들러
-  const handleLike = (e, id) => {
+  const handleLike = async (e, id) => {
     e.stopPropagation()
-    storageService.toggleArticleLike(id)
+    await storageService.toggleArticleLike(id)
   }
 
   // 글 작성 모달 열기
@@ -131,14 +132,14 @@ export default function ArticleHub({ authorFilter, onClearAuthorFilter, onFilter
   }
 
   // 글 삭제 (관리자 또는 본인)
-  const handleDeleteArticle = (id, title) => {
+  const handleDeleteArticle = async (id, title) => {
     if (confirm(`'${title}' 글을 피드에서 완전히 삭제하시겠습니까?`)) {
-      storageService.deleteArticle(id)
+      await storageService.deleteArticle(id)
     }
   }
 
   // 글 등록/수정 서브밋
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!formData.title || !formData.url) return
 
@@ -151,39 +152,44 @@ export default function ArticleHub({ authorFilter, onClearAuthorFilter, onFilter
       finalLearnUrl = formData.url.trim()
     }
 
-    if (editingArticleId) {
-      storageService.updateArticle(editingArticleId, {
-        title: formData.title.trim(),
-        excerpt: formData.excerpt.trim(),
-        url: formData.url.trim(),
-        learnUrl: finalLearnUrl,
-        platform: formData.platform,
-        tags: formData.tags,
-        authorHandle: formData.authorHandle,
-      })
-    } else {
-      storageService.addArticle({
-        title: formData.title.trim(),
-        excerpt: formData.excerpt.trim(),
-        url: formData.url.trim(),
-        learnUrl: finalLearnUrl,
-        platform: formData.platform,
-        tags: formData.tags,
-        authorHandle: formData.authorHandle || currentUser?.handle || 'LIT',
-      })
-    }
+    setIsSubmitting(true)
+    try {
+      if (editingArticleId) {
+        await storageService.updateArticle(editingArticleId, {
+          title: formData.title.trim(),
+          excerpt: formData.excerpt.trim(),
+          url: formData.url.trim(),
+          learnUrl: finalLearnUrl,
+          platform: formData.platform,
+          tags: formData.tags,
+          authorHandle: formData.authorHandle,
+        })
+      } else {
+        await storageService.addArticle({
+          title: formData.title.trim(),
+          excerpt: formData.excerpt.trim(),
+          url: formData.url.trim(),
+          learnUrl: finalLearnUrl,
+          platform: formData.platform,
+          tags: formData.tags,
+          authorHandle: formData.authorHandle || currentUser?.handle || 'LIT',
+        })
+      }
 
-    setFormData({
-      title: '',
-      excerpt: '',
-      url: '',
-      learnUrl: '',
-      platform: 'linkedin',
-      tags: '',
-      authorHandle: currentUser?.handle || '',
-    })
-    setEditingArticleId(null)
-    setIsModalOpen(false)
+      setFormData({
+        title: '',
+        excerpt: '',
+        url: '',
+        learnUrl: '',
+        platform: 'linkedin',
+        tags: '',
+        authorHandle: currentUser?.handle || '',
+      })
+      setEditingArticleId(null)
+      setIsModalOpen(false)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -614,9 +620,10 @@ export default function ArticleHub({ authorFilter, onClearAuthorFilter, onFilter
                   </button>
                   <button
                     type="submit"
-                    className="rounded-xl bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))] px-5 py-2.5 text-xs font-bold text-bg hover:opacity-90"
+                    disabled={isSubmitting}
+                    className="rounded-xl bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))] px-5 py-2.5 text-xs font-bold text-bg hover:opacity-90 disabled:opacity-50 transition-opacity"
                   >
-                    {editingArticleId ? '수정사항 저장' : '공유 등록하기'}
+                    {isSubmitting ? '저장 중...' : (editingArticleId ? '수정사항 저장' : '공유 등록하기')}
                   </button>
                 </div>
               </form>

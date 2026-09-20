@@ -31,6 +31,7 @@ export default function Missions({ onOpenAuth }) {
   const [currentUser, setCurrentUser] = useState(storageService.getCurrentUser())
   const [isAdmin, setIsAdmin] = useState(storageService.isAdmin())
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   // 새 미션 폼
   const [formData, setFormData] = useState({
@@ -50,43 +51,48 @@ export default function Missions({ onOpenAuth }) {
     return unsub
   }, [])
 
-  const handleToggleComplete = (missionId) => {
+  const handleToggleComplete = async (missionId) => {
     let user = currentUser || storageService.getCurrentUser()
     if (!user) {
       if (onOpenAuth) onOpenAuth()
       return
     }
     const userHandle = user.handle
-    storageService.toggleMissionCompletion(missionId, userHandle)
+    await storageService.toggleMissionCompletion(missionId, userHandle)
     setMissions(storageService.getMissions())
   }
 
-  const handleDeleteMission = (missionId) => {
+  const handleDeleteMission = async (missionId) => {
     if (confirm('정말 이 공지를 삭제하시겠습니까?')) {
-      storageService.deleteMission(missionId)
+      await storageService.deleteMission(missionId)
     }
   }
 
-  const handleCreateMission = (e) => {
+  const handleCreateMission = async (e) => {
     e.preventDefault()
     if (!formData.title || !formData.desc) return
 
-    storageService.addMission({
-      title: formData.title,
-      desc: formData.desc,
-      reward: formData.reward || '동아리 포인트',
-      category: formData.category,
-      deadline: formData.deadline || '2026-10-31',
-    })
+    setIsSubmitting(true)
+    try {
+      await storageService.addMission({
+        title: formData.title,
+        desc: formData.desc,
+        reward: formData.reward || '동아리 포인트',
+        category: formData.category,
+        deadline: formData.deadline || '2026-10-31',
+      })
 
-    setFormData({
-      title: '',
-      desc: '',
-      reward: '',
-      category: 'weekly',
-      deadline: '',
-    })
-    setIsAddModalOpen(false)
+      setFormData({
+        title: '',
+        desc: '',
+        reward: '',
+        category: 'weekly',
+        deadline: '',
+      })
+      setIsAddModalOpen(false)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -317,9 +323,10 @@ export default function Missions({ onOpenAuth }) {
                   </button>
                   <button
                     type="submit"
-                    className="rounded-xl bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))] px-5 py-2.5 text-xs font-bold text-bg hover:opacity-90"
+                    disabled={isSubmitting}
+                    className="rounded-xl bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))] px-5 py-2.5 text-xs font-bold text-bg hover:opacity-90 disabled:opacity-50 transition-opacity"
                   >
-                    공지 등록하기
+                    {isSubmitting ? '공지 저장 중...' : '공지 등록하기'}
                   </button>
                 </div>
               </form>
