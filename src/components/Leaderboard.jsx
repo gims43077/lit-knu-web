@@ -250,31 +250,29 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
                         <img
                           src={m.avatar}
                           alt={m.name}
-                          className="h-10 w-10 sm:h-11 sm:w-11 shrink-0 rounded-xl border border-line object-cover"
+                          className="h-11 w-11 sm:h-12 sm:w-12 shrink-0 rounded-xl border border-line object-cover"
                         />
 
-                        {/* Name & Major (2줄 고정으로 모든 카드 높이 균일 유지) */}
+                        {/* Name & Major (이름은 100% 온전히 보이고 절대 잘리지 않음) */}
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5 truncate">
-                            <span className="font-display text-base font-bold text-fg sm:text-lg truncate">
-                              {m.name}
-                            </span>
-                            <span className="font-mono text-xs text-muted truncate">@{m.handle}</span>
+                          <div className="font-display text-base sm:text-lg font-bold text-fg leading-tight whitespace-nowrap">
+                            {m.name}
                           </div>
-                          <p className="mt-0.5 text-xs text-muted truncate">
-                            {m.role} · {m.major}
+                          <p className="mt-1 text-xs text-muted truncate">
+                            <span className="font-mono text-[11px] text-muted mr-1.5">@{m.handle}</span>
+                            <span>· {m.role} · {m.major}</span>
                           </p>
                         </div>
                       </div>
 
                       {/* Clicks & Percent (상단 우측 정렬) */}
                       <div className="text-right shrink-0">
-                        <div className="flex items-baseline justify-end gap-1.5">
-                          <span className="font-sans text-2xl font-black text-fg sm:text-3xl">
+                        <div className="flex items-baseline justify-end gap-1 sm:gap-1.5">
+                          <span className="font-sans text-xl sm:text-3xl font-black text-fg">
                             {m.clicks || 0}
                           </span>
-                          <span className="font-mono text-xs text-muted">/ 250</span>
-                          <span className="font-mono text-xs font-semibold text-mint">
+                          <span className="font-mono text-[11px] sm:text-xs text-muted">/ 250</span>
+                          <span className="font-mono text-[11px] sm:text-xs font-semibold text-mint">
                             ({percent}%)
                           </span>
                         </div>
@@ -299,16 +297,18 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
 
                     {/* 3. 하단: 뱃지/자격증 (좌측) + 액션 버튼 (우측) */}
                     <div className="mt-3 flex items-center justify-between gap-2 min-h-[36px]">
-                      {/* Badges container */}
+                      {/* Badges container: 250 달성과 자격증 모두 통일된 둥근 사각형(rounded-lg) 디자인 */}
                       <div className="flex flex-wrap items-center gap-1.5 min-w-0">
                         {isFinished && (
-                          <span className="rounded-full border border-mint/40 bg-mint/15 px-2 py-0.5 font-mono text-[10px] font-bold text-mint whitespace-nowrap">
-                            👑 250 달성!
+                          <span className="inline-flex items-center gap-1 rounded-lg border border-mint/35 bg-mint/10 px-2 py-0.5 font-mono text-[11px] font-semibold text-mint whitespace-nowrap shadow-sm">
+                            <span>👑</span>
+                            <span>250 달성!</span>
                           </span>
                         )}
                         {m.certifications && (
-                          <span className="inline-flex items-center gap-1 rounded bg-cyan/10 border border-cyan/30 px-1.5 py-0.5 font-mono text-[10px] font-medium text-cyan whitespace-nowrap">
-                            🎓 {m.certifications}
+                          <span className="inline-flex items-center gap-1 rounded-lg border border-cyan/35 bg-cyan/10 px-2 py-0.5 font-mono text-[11px] font-semibold text-cyan whitespace-nowrap shadow-sm">
+                            <span>🎓</span>
+                            <span>{m.certifications}</span>
                           </span>
                         )}
                       </div>
