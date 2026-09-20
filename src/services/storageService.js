@@ -556,47 +556,56 @@ export async function syncFromCloud() {
       const json = await res.json()
       const cloudMembers = Array.isArray(json.data) ? json.data : Array.isArray(json.members) ? json.members : []
       if (cloudMembers.length > 0) {
-        // Cosmos DB에 등록된 부원이 있는 경우 로컬 저장소와 스마트 병합
-        const local = storageService.getMembers()
-        const map = new Map()
-
-        // 1. 기본/로컬 멤버 먼저 세팅
-        local.forEach((m) => {
-          if (m && m.handle) map.set(m.handle.toLowerCase(), m)
-        })
-
-        // 2. 클라우드 멤버로 최신 업데이트 및 병합
-        cloudMembers.forEach((cm) => {
-          if (!cm || !cm.handle) return
-          const key = cm.handle.toLowerCase()
-          const existing = map.get(key)
-          if (existing) {
-            map.set(key, { ...existing, ...cm })
-          } else {
-            map.set(key, cm)
+        // Cosmos DB가 단일 진실 공급원(Single Source of Truth)입니다.
+        // Cosmos DB에서 삭제된 부원은 웹에서도 즉시 삭제되어야 하므로,
+        // 클라우드 멤버 목록으로 로컬 스토리지를 100% 동기화합니다.
+        const cleanedMembers = cloudMembers.map((m) => {
+          const rawClicks = Number(m.clicks)
+          const clicks = isNaN(rawClicks) ? 0 : Math.max(0, rawClicks)
+          const contributorId = m.contributorId || extractContributorId(m.msLink) || 'studentamb_482865'
+          const badges = MILESTONES.filter((ml) => clicks >= ml.count).map((ml) => ml.badge)
+          let avatar = m.avatar
+          if (!avatar || avatar.includes('unsplash.com') || avatar.includes('dicebear')) {
+            const defaultMatch = DEFAULT_MEMBERS.find((dm) => dm.handle === m.handle)
+            if (defaultMatch) {
+              avatar = defaultMatch.avatar
+            } else {
+              const hash = (m.handle || '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)
+              avatar = AVATAR_PRESETS[Math.abs(hash) % AVATAR_PRESETS.length]
+            }
+          }
+          return {
+            ...m,
+            handle: String(m.handle || m.id).toLowerCase(),
+            clicks,
+            avatar,
+            role: (m.role || 'LIT 부원').replace(/MLSA/g, 'MSA'),
+            contributorId,
+            certifications: m.certifications || '',
+            msLink: m.msLink || formatContributorLink(contributorId),
+            password: m.password || '1234',
+            badges,
           }
         })
 
-        // 3. 로컬에만 존재하고 클라우드에 아직 없는 신규 부원(오프라인 가입 등)이 있다면 즉시 클라우드로 업로드
-        const cloudHandles = new Set(cloudMembers.map((cm) => (cm.handle || '').toLowerCase()))
-        const defaultHandles = new Set(DEFAULT_MEMBERS.map((dm) => dm.handle.toLowerCase()))
-        for (const m of local) {
-          if (!m || !m.handle) continue
-          const h = m.handle.toLowerCase()
-          if (!cloudHandles.has(h) && !defaultHandles.has(h)) {
-            fetch('/api/members', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(m),
-            }).catch(() => {})
-          }
+        const currentLocalStr = localStorage.getItem(STORAGE_KEYS.MEMBERS)
+        const newMembersStr = JSON.stringify(cleanedMembers)
+        if (currentLocalStr !== newMembersStr) {
+          localStorage.setItem(STORAGE_KEYS.MEMBERS, newMembersStr)
+          notify()
         }
 
-        const merged = Array.from(map.values())
-        localStorage.setItem(STORAGE_KEYS.MEMBERS, JSON.stringify(merged))
-        notify()
+        // 현재 로그인된 사용자가 Cosmos DB에서 삭제되었다면 자동 로그아웃
+        const currentHandle = localStorage.getItem(STORAGE_KEYS.CURRENT_USER)
+        if (currentHandle && currentHandle.toUpperCase() !== 'LIT') {
+          const stillExists = cleanedMembers.some((cm) => cm.handle.toLowerCase() === currentHandle.toLowerCase())
+          if (!stillExists) {
+            localStorage.removeItem(STORAGE_KEYS.CURRENT_USER)
+            notify()
+          }
+        }
       } else {
-        // Cosmos DB가 비어있는 초기 상태인 경우, 기본 부원 데이터를 클라우드로 일괄 전송(Seed)
+        // Cosmos DB가 완전히 비어있는 초기 상태인 경우에만 기본 부원 데이터 전송
         const local = storageService.getMembers()
         if (local.length > 0) {
           fetch('/api/sync', {

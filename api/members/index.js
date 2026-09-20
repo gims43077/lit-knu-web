@@ -9,10 +9,11 @@ module.exports = async function (context, req) {
     if (container) {
       try {
         const { resources } = await container.items.query('SELECT * FROM c').fetchAll()
+        const members = resources.filter((r) => !r.type || r.type === 'member')
         context.res = {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
-          body: { success: true, count: resources.length, data: resources, source: 'azure-cosmos-db' },
+          body: { success: true, count: members.length, data: members, source: 'azure-cosmos-db' },
         }
         return
       } catch (err) {
