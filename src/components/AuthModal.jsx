@@ -239,7 +239,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
             <form onSubmit={handleLogin} className="space-y-3">
               <div>
                 <label className="block font-mono text-[10px] uppercase text-muted mb-1">
-                  아이디 (영문 핸들)
+                  아이디
                 </label>
                 <input
                   type="text"
@@ -345,7 +345,6 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
 
               {/* Quick avatar presets */}
               <div className="mt-2 flex items-center gap-1.5 pt-1.5 border-t border-line/40 flex-wrap">
-                <span className="font-mono text-[9px] text-muted mr-1">추천 프리셋 (단색):</span>
                 {AVATAR_PRESETS.map((preset, idx) => (
                   <button
                     key={idx}
@@ -380,7 +379,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
               </div>
               <div>
                 <label className="block font-mono text-[10px] uppercase text-muted mb-1">
-                  아이디 (영문) *
+                  아이디 *
                 </label>
                 <input
                   type="text"

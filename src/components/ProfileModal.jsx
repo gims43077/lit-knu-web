@@ -252,7 +252,6 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
 
             {/* Quick avatar presets */}
             <div className="mt-2.5 flex items-center gap-2 pt-2 border-t border-line/50 flex-wrap">
-              <span className="font-mono text-[9px] text-muted mr-1">추천 프리셋 (단색):</span>
               {AVATAR_PRESETS.map((preset, idx) => (
                 <button
                   key={idx}
