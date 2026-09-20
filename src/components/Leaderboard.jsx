@@ -235,15 +235,7 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
                       <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
                         {/* Rank badge */}
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-display text-lg font-black tracking-tight sm:h-11 sm:w-11 sm:text-xl">
-                          {rank === 1 ? (
-                            <span className="text-amber drop-shadow-[0_0_8px_rgba(255,209,102,0.6)]">🥇 1</span>
-                          ) : rank === 2 ? (
-                            <span className="text-fg drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]">🥈 2</span>
-                          ) : rank === 3 ? (
-                            <span className="text-pink drop-shadow-[0_0_8px_rgba(255,111,177,0.5)]">🥉 3</span>
-                          ) : (
-                            <span className="text-muted font-mono text-sm">#{rank}</span>
-                          )}
+                          <span className="text-muted font-mono text-sm sm:text-base font-bold">#{rank}</span>
                         </div>
 
                         {/* Avatar */}
@@ -297,16 +289,16 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
 
                     {/* 3. 하단: 뱃지/자격증 (좌측) + 액션 버튼 (우측) */}
                     <div className="mt-3 flex items-center justify-between gap-2 min-h-[36px]">
-                      {/* Badges container: 250 달성과 자격증 모두 통일된 둥근 사각형(rounded-lg) 디자인 */}
+                      {/* Badges container: 250 달성과 자격증 모두 AI-900과 동일한 둥근 사각형 및 색상 통일 디자인 */}
                       <div className="flex flex-wrap items-center gap-1.5 min-w-0">
                         {isFinished && (
-                          <span className="inline-flex items-center gap-1 rounded-lg border border-mint/35 bg-mint/10 px-2 py-0.5 font-mono text-[11px] font-semibold text-mint whitespace-nowrap shadow-sm">
+                          <span className="inline-flex items-center gap-1 rounded-lg border border-white/20 bg-white/[0.05] px-2 py-0.5 font-mono text-[11px] font-semibold text-fg/90 whitespace-nowrap shadow-sm">
                             <span>👑</span>
                             <span>250 달성!</span>
                           </span>
                         )}
                         {m.certifications && (
-                          <span className="inline-flex items-center gap-1 rounded-lg border border-cyan/35 bg-cyan/10 px-2 py-0.5 font-mono text-[11px] font-semibold text-cyan whitespace-nowrap shadow-sm">
+                          <span className="inline-flex items-center gap-1 rounded-lg border border-white/20 bg-white/[0.05] px-2 py-0.5 font-mono text-[11px] font-semibold text-fg/90 whitespace-nowrap shadow-sm">
                             <span>🎓</span>
                             <span>{m.certifications}</span>
                           </span>

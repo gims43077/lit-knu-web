@@ -677,14 +677,14 @@ export const storageService = {
 
     const members = this.getMembers()
     const updated = members.map((m) => {
-      if (m.handle === handle) {
+      if (m.handle.toLowerCase() === clean.toLowerCase()) {
         return { ...m, ...sanitized }
       }
       return m
     })
     localStorage.setItem(STORAGE_KEYS.MEMBERS, JSON.stringify(updated))
     notify()
-    return updated.find((m) => m.handle === handle)
+    return updated.find((m) => m.handle.toLowerCase() === clean.toLowerCase())
   },
 
   addMember(newMember) {

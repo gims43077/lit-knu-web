@@ -307,7 +307,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
 
         {/* TAB 2: 신규 부원 등록 (비밀번호 필수) */}
         {tab === 'register' && (
-          <form onSubmit={handleRegister} className="mt-5 space-y-3 max-h-[420px] overflow-y-auto pr-1">
+          <form onSubmit={handleRegister} noValidate className="mt-5 space-y-3 max-h-[420px] overflow-y-auto pr-1">
             {/* 프로필 사진 등록 */}
             <div className="rounded-2xl border border-line bg-white/[0.03] p-3">
               <div className="flex items-center gap-3">
@@ -344,7 +344,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
                     </label>
                   </div>
                   <input
-                    type="url"
+                    type="text"
                     value={newMember.avatar}
                     onChange={(e) => setNewMember({ ...newMember, avatar: e.target.value })}
                     placeholder="또는 이미지 URL (https://...)"
@@ -447,12 +447,9 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="font-mono text-[10px] uppercase text-muted">
-                  보유 Microsoft 공인 자격증 (MSA 자격 요건)
-                </label>
-                <span className="font-mono text-[10px] text-cyan">🎓 1개 이상 취득 필수</span>
-              </div>
+              <label className="block font-mono text-[10px] uppercase text-muted mb-1">
+                보유 MS 자격증
+              </label>
               <input
                 type="text"
                 value={newMember.certifications}
@@ -462,7 +459,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
               />
               <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                 <span className="font-mono text-[9px] text-muted mr-1">빠른 선택:</span>
-                {['AI-900', 'AZ-900', 'DP-900', 'SC-900', 'GH-900'].map((cert) => (
+                {['AI-900', 'AZ-900', 'DP-900', 'SC-900'].map((cert) => (
                   <button
                     key={cert}
                     type="button"
@@ -494,20 +491,16 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
                 placeholder="예: studentamb_482865 또는 482865"
                 className="glass w-full rounded-xl px-3 py-2 text-xs text-fg focus:border-pink/50 focus:outline-none"
               />
-              <p className="mt-1 font-mono text-[10px] text-muted">
-                * Contributor ID를 입력하면 챌린지 추적 링크가 자동으로 연동됩니다.
-              </p>
             </div>
 
             <div>
               <label className="block font-mono text-[10px] uppercase text-muted mb-1">
-                한 줄 소개 / 각오
+                한 줄 소개
               </label>
               <input
                 type="text"
                 value={newMember.bio}
                 onChange={(e) => setNewMember({ ...newMember, bio: e.target.value })}
-                placeholder="예: 250 클릭 달성을 향해 함께 달립니다!"
                 className="glass w-full rounded-xl px-3 py-2 text-xs text-fg focus:border-pink/50 focus:outline-none"
               />
             </div>

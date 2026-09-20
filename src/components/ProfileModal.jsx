@@ -62,7 +62,7 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
   const handleClicksChange = (delta) => {
     setFormData((prev) => ({
       ...prev,
-      clicks: Math.max(0, Math.min(250, Number(prev.clicks) + delta)),
+      clicks: Math.max(0, Number(prev.clicks) + delta),
     }))
   }
 
@@ -158,7 +158,7 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-5 space-y-4 max-h-[460px] overflow-y-auto pr-1">
+        <form onSubmit={handleSubmit} noValidate className="mt-5 space-y-4 max-h-[460px] overflow-y-auto pr-1">
           {/* Clicks count adjustment box */}
           <div className="rounded-2xl border border-pink/30 bg-pink/[0.06] p-4">
             <div className="flex items-center justify-between gap-3">
@@ -177,10 +177,9 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
                 <input
                   type="number"
                   min="0"
-                  max="250"
                   value={formData.clicks}
                   onChange={(e) =>
-                    setFormData({ ...formData, clicks: Math.max(0, Math.min(250, Number(e.target.value))) })
+                    setFormData({ ...formData, clicks: Math.max(0, Number(e.target.value) || 0) })
                   }
                   className="glass h-9 w-20 rounded-xl px-0 text-center font-sans text-lg font-bold tabular-nums text-fg focus:outline-none focus:border-pink/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
@@ -232,7 +231,7 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
                   </label>
                 </div>
                 <input
-                  type="url"
+                  type="text"
                   value={formData.avatar}
                   onChange={(e) => setFormData({ ...formData, avatar: e.target.value })}
                   placeholder="또는 이미지 URL 직접 입력 (https://...)"
@@ -297,12 +296,9 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
           </div>
 
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="font-mono text-[10px] uppercase text-muted">
-                보유 Microsoft 공인 자격증 (MSA 자격 요건)
-              </label>
-              <span className="font-mono text-[10px] text-cyan">🎓 1개 이상 취득 필수</span>
-            </div>
+            <label className="block font-mono text-[10px] uppercase text-muted mb-1">
+              보유 MS 자격증
+            </label>
             <input
               type="text"
               value={formData.certifications}
@@ -312,7 +308,7 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
             />
             <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
               <span className="font-mono text-[9px] text-muted mr-1">빠른 선택:</span>
-              {['AI-900', 'AZ-900', 'DP-900', 'SC-900', 'GH-900'].map((cert) => (
+              {['AI-900', 'AZ-900', 'DP-900', 'SC-900'].map((cert) => (
                 <button
                   key={cert}
                   type="button"
@@ -331,9 +327,6 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
                 </button>
               ))}
             </div>
-            <p className="mt-1 font-mono text-[10px] text-muted">
-              * Fundamentals 자격증 칩을 누르면 자동 추가됩니다. (쉼표로 구분)
-            </p>
           </div>
 
           <div>
@@ -347,9 +340,6 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
               placeholder="예: studentamb_482865 또는 482865"
               className="glass w-full rounded-xl px-3 py-2 text-xs text-fg focus:border-pink/50 focus:outline-none"
             />
-            <p className="mt-1 font-mono text-[10px] text-muted">
-              * Contributor ID 입력 시 챌린지 추적 링크가 자동으로 갱신됩니다.
-            </p>
           </div>
 
           <div>
@@ -357,7 +347,7 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
               LinkedIn 프로필 URL
             </label>
             <input
-              type="url"
+              type="text"
               value={formData.linkedin}
               onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
               placeholder="https://linkedin.com/in/..."
