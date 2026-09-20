@@ -18,7 +18,7 @@ module.exports = async function (context, req) {
     let syncedFaqs = 0
 
     const blockedMockHandles = new Set([
-      'minji_kim', 'junho_park', 'sujin_choi', 'dohyun_lee', 'chaewon_yoon', 'taeyang_jung', 'yejin_han', 'sanjun', 'aa'
+      'shlee', 'minji_kim', 'junho_park', 'sujin_choi', 'dohyun_lee', 'chaewon_yoon', 'taeyang_jung', 'yejin_han', 'sanjun', 'aa'
     ])
     const blockedMockArticleIds = new Set([
       'art-1', 'art-2', 'art-3', 'art-4', 'art-5', 'art-6', 'art-1789899483060'
@@ -28,7 +28,7 @@ module.exports = async function (context, req) {
       try {
         for (const m of members) {
           if (!m || !m.handle) continue
-          if (blockedMockHandles.has(String(m.handle).trim().toLowerCase())) continue
+          if (blockedMockHandles.has(String(m.handle).trim().toLowerCase()) || m.name === '이승환') continue
           await container.items.upsert({
             ...m,
             id: m.handle,
