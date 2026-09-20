@@ -219,8 +219,30 @@ export function generateContributorUrl(originalUrl, contributorId) {
   return res.isValid ? res.url : ''
 }
 
-// 부원 데이터 초기값 (실제 운영용)
-const DEFAULT_MEMBERS = []
+// 부원 데이터 초기값 (Azure Cosmos DB와 100% 동기화된 기본 부원)
+export const DEFAULT_MEMBERS = [
+  {
+    id: 'shlee',
+    handle: 'shlee',
+    name: '이승환',
+    role: 'LIT 회장',
+    clicks: 120,
+    target: 250,
+    major: '컴퓨터학부 20학번',
+    contributorId: 'studentamb_482865',
+    certifications: 'AI-900, AZ-900',
+    msLink: 'https://learn.microsoft.com/?wt.mc_id=studentamb_482865',
+    password: '1234',
+    badges: ['30 달성', '50 달성', '100 달성'],
+    bio: '',
+    avatar: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%235EF0D6'/%3E%3C/svg%3E",
+    socials: {
+      linkedin: '',
+      blog: '',
+      github: '',
+    },
+  },
+]
 
 // 아티클 데이터 초기값 (실제 운영용)
 const DEFAULT_ARTICLES = []
@@ -233,33 +255,6 @@ const DEFAULT_MISSIONS = [
     desc: 'Microsoft Learn에서 이번 주 학습한 모듈이나 세션 주제를 바탕으로 LinkedIn에 글을 작성하고, 본문에 본인의 챌린지 링크를 연결한 후 LIT 피드에 등록하세요.',
     reward: '☕ 스타벅스 커피 쿠폰 추첨 + 동아리 50P',
     deadline: '2026-09-27',
-    completedMemberHandles: [],
-    active: true,
-  },
-  {
-    id: 'mis-2',
-    title: '🤝 다른 부원의 글 3개 이상 읽고 응원 댓글 & 피드백 달기',
-    desc: 'LIT의 힘은 서로 배우고 가르치는(Learn It, Teach) 커뮤니티에서 나옵니다. LIT 피드에서 다른 부원들의 글을 읽고 LinkedIn/블로그에 피드백을 남겨주세요.',
-    reward: '⭐ 커뮤니티 뱃지 + 동아리 30P',
-    deadline: '2026-09-30',
-    completedMemberHandles: [],
-    active: true,
-  },
-  {
-    id: 'mis-3',
-    title: '⚡ 주말 동안 클릭수 +20 달성하기',
-    desc: '학과 단톡방, SNS, 개발 커뮤니티에 내가 작성한 유익한 기술 요약글을 공유하여 주말 동안 클릭수를 20 이상 끌어올려 보세요!',
-    reward: '🚀 LIT 한정판 스티커 팩 + 100달성 가속 보너스',
-    deadline: '2026-09-22',
-    completedMemberHandles: [],
-    active: true,
-  },
-  {
-    id: 'mis-4',
-    title: '👑 100 조회수 돌파하고 Microsoft 자격증 바우처 신청하기',
-    desc: '누적 100 클릭을 달성한 부원은 운영진에게 알려주시면 GH-900 또는 AI-900 공식 시험 응시권(100% 지원)을 지급해 드립니다.',
-    reward: '🎓 Microsoft 공인 자격증 시험 바우처 전액 지원',
-    deadline: '2026-10-31',
     completedMemberHandles: [],
     active: true,
   },
@@ -294,6 +289,34 @@ const DEFAULT_FAQS = [
   },
 ]
 
+// 레거시 가상 예시 계정 및 더미 데이터 자동 정리 함수
+function purgeLegacyMockData() {
+  if (typeof window === 'undefined') return
+  try {
+    const rawMembers = localStorage.getItem(STORAGE_KEYS.MEMBERS)
+    if (rawMembers) {
+      const parsed = JSON.parse(rawMembers)
+      const mockHandles = ['minji_kim', 'junho_park', 'sujin_choi', 'hyunjin_lee', 'daeun_jung', 'taeyang_kang', 'yuna_song']
+      const hasMocks = parsed.some((m) => mockHandles.includes(m.handle))
+      if (hasMocks) {
+        const cleaned = parsed.filter((m) => !mockHandles.includes(m.handle))
+        localStorage.setItem(STORAGE_KEYS.MEMBERS, JSON.stringify(cleaned.length > 0 ? cleaned : DEFAULT_MEMBERS))
+      }
+    }
+    const rawArticles = localStorage.getItem(STORAGE_KEYS.ARTICLES)
+    if (rawArticles) {
+      const parsed = JSON.parse(rawArticles)
+      const mockArtIds = ['art-1', 'art-2', 'art-3', 'art-4']
+      if (parsed.some((a) => mockArtIds.includes(a.id))) {
+        localStorage.setItem(STORAGE_KEYS.ARTICLES, JSON.stringify([]))
+      }
+    }
+  } catch (e) {
+    console.debug('Purge legacy mock data error:', e)
+  }
+}
+purgeLegacyMockData()
+
 // Pub/Sub 리스너 관리
 const listeners = new Set()
 function notify() {
@@ -306,140 +329,167 @@ function notify() {
   })
 }
 
-// Cloud Sync Helper with Azure Cosmos DB & Functions
+// Timeout fetch helper for resilient cloud sync
+async function fetchWithTimeout(url, options = {}, timeoutMs = 4000) {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    const res = await fetch(url, { ...options, signal: controller.signal })
+    return res
+  } catch (err) {
+    return null
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+// Cloud Sync Helper with Azure Cosmos DB & Functions (각 데이터 타입 독립 동기화)
 let isSyncing = false
 export async function syncFromCloud() {
   if (isSyncing || typeof window === 'undefined') return
   isSyncing = true
   try {
-    // 4개 데이터 타입을 병렬로 동시 조회
-    const [membersRes, articlesRes, missionsRes, faqsRes] = await Promise.all([
-      fetch('/api/members').catch(() => null),
-      fetch('/api/articles').catch(() => null),
-      fetch('/api/missions').catch(() => null),
-      fetch('/api/faqs').catch(() => null),
-    ])
+    // 1. Members 독립 동기화
+    const pMembers = (async () => {
+      const res = await fetchWithTimeout('/api/members')
+      if (res && res.ok) {
+        const json = await res.json().catch(() => null)
+        if (!json) return
+        const cloudMembers = Array.isArray(json.data) ? json.data : Array.isArray(json.members) ? json.members : []
+        const cleanedMembers = cloudMembers.map((m) => {
+          const rawClicks = Number(m.clicks)
+          const clicks = isNaN(rawClicks) ? 0 : Math.max(0, rawClicks)
+          const contributorId = m.contributorId || extractContributorId(m.msLink) || 'studentamb_482865'
+          const badges = MILESTONES.filter((ml) => clicks >= ml.count).map((ml) => ml.badge)
+          let avatar = m.avatar
+          if (!avatar || avatar.includes('unsplash.com') || avatar.includes('dicebear')) {
+            const hash = (m.handle || '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)
+            avatar = AVATAR_PRESETS[Math.abs(hash) % AVATAR_PRESETS.length]
+          }
+          return {
+            ...m,
+            handle: String(m.handle || m.id).toLowerCase(),
+            clicks,
+            avatar,
+            role: (m.role || 'LIT 부원').replace(/MLSA/g, 'MSA'),
+            contributorId,
+            certifications: m.certifications || '',
+            msLink: m.msLink || formatContributorLink(contributorId),
+            password: m.password || '',
+            badges,
+          }
+        })
 
-    let didChange = false
-
-    // ── Members 동기화 (기존 SSOT 로직) ──
-    if (membersRes && membersRes.ok) {
-      const json = await membersRes.json()
-      const cloudMembers = Array.isArray(json.data) ? json.data : Array.isArray(json.members) ? json.members : []
-      const cleanedMembers = cloudMembers.map((m) => {
-        const rawClicks = Number(m.clicks)
-        const clicks = isNaN(rawClicks) ? 0 : Math.max(0, rawClicks)
-        const contributorId = m.contributorId || extractContributorId(m.msLink) || 'studentamb_482865'
-        const badges = MILESTONES.filter((ml) => clicks >= ml.count).map((ml) => ml.badge)
-        let avatar = m.avatar
-        if (!avatar || avatar.includes('unsplash.com') || avatar.includes('dicebear')) {
-          const hash = (m.handle || '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)
-          avatar = AVATAR_PRESETS[Math.abs(hash) % AVATAR_PRESETS.length]
+        const currentLocalStr = localStorage.getItem(STORAGE_KEYS.MEMBERS)
+        const newMembersStr = JSON.stringify(cleanedMembers)
+        if (currentLocalStr !== newMembersStr) {
+          localStorage.setItem(STORAGE_KEYS.MEMBERS, newMembersStr)
+          notify()
         }
-        return {
-          ...m,
-          handle: String(m.handle || m.id).toLowerCase(),
-          clicks,
-          avatar,
-          role: (m.role || 'LIT 부원').replace(/MLSA/g, 'MSA'),
-          contributorId,
-          certifications: m.certifications || '',
-          msLink: m.msLink || formatContributorLink(contributorId),
-          password: m.password || '',
-          badges,
-        }
-      })
 
-      const currentLocalStr = localStorage.getItem(STORAGE_KEYS.MEMBERS)
-      const newMembersStr = JSON.stringify(cleanedMembers)
-      if (currentLocalStr !== newMembersStr) {
-        localStorage.setItem(STORAGE_KEYS.MEMBERS, newMembersStr)
-        didChange = true
-      }
-
-      const currentHandle = localStorage.getItem(STORAGE_KEYS.CURRENT_USER)
-      if (currentHandle && currentHandle.toUpperCase() !== 'LIT') {
-        const stillExists = cleanedMembers.some((cm) => cm.handle.toLowerCase() === currentHandle.toLowerCase())
-        if (!stillExists) {
-          localStorage.removeItem(STORAGE_KEYS.CURRENT_USER)
-          didChange = true
-        }
-      }
-    }
-
-    // ── Articles 동기화 (Cosmos DB → localStorage 덮어쓰기) ──
-    if (articlesRes && articlesRes.ok) {
-      const json = await articlesRes.json()
-      const cloudArticles = Array.isArray(json.data) ? json.data : []
-      const cleaned = cloudArticles.map((a) => ({
-        id: a.id, title: a.title || '', excerpt: a.excerpt || '',
-        url: a.url || '', learnUrl: a.learnUrl || '', platform: a.platform || 'linkedin',
-        authorHandle: a.authorHandle || '', authorName: a.authorName || '',
-        authorAvatar: a.authorAvatar || '', tags: a.tags || [], likes: a.likes || 0,
-        createdAt: a.createdAt || '',
-      }))
-      const localStr = localStorage.getItem(STORAGE_KEYS.ARTICLES)
-      const newStr = JSON.stringify(cleaned)
-      if (localStr !== newStr) {
-        localStorage.setItem(STORAGE_KEYS.ARTICLES, newStr)
-        didChange = true
-      }
-    }
-
-    // ── Missions 동기화 (Cosmos DB → localStorage 덮어쓰기) ──
-    if (missionsRes && missionsRes.ok) {
-      const json = await missionsRes.json()
-      const cloudMissions = Array.isArray(json.data) ? json.data : []
-      if (cloudMissions.length > 0) {
-        const cleaned = cloudMissions.map((m) => ({
-          id: m.id,
-          title: (m.title || '').replace(/\[주간 미션\]/g, '').replace(/\[동료 피드백\]/g, '')
-            .replace(/\[부스트 퀘스트\]/g, '').replace(/\[마일스톤 챌린지\]/g, '').replace(/\s+/g, ' ').trim(),
-          desc: m.desc || '', reward: m.reward || '', category: m.category || 'weekly',
-          deadline: m.deadline || '', completedMemberHandles: m.completedMemberHandles || [],
-          active: m.active !== undefined ? m.active : true,
-        }))
-        const localStr = localStorage.getItem(STORAGE_KEYS.MISSIONS)
-        const newStr = JSON.stringify(cleaned)
-        if (localStr !== newStr) {
-          localStorage.setItem(STORAGE_KEYS.MISSIONS, newStr)
-          didChange = true
-        }
-      }
-    }
-
-    // ── FAQs 동기화 (Cosmos DB → localStorage 덮어쓰기) ──
-    if (faqsRes && faqsRes.ok) {
-      const json = await faqsRes.json()
-      const cloudFaqs = Array.isArray(json.data) ? json.data : []
-      if (cloudFaqs.length > 0) {
-        const cleaned = cloudFaqs
-          .filter((item) => !item.q?.includes('Azure 시스템으로 DB 관리'))
-          .map((item, idx) => ({
-            id: item.id || `faq-${idx + 1}`, q: item.q || '', a: item.a || '',
-            createdAt: item.createdAt || '', updatedAt: item.updatedAt || '',
-          }))
-        const localStr = localStorage.getItem(STORAGE_KEYS.FAQS)
-        const newStr = JSON.stringify(cleaned)
-        if (localStr !== newStr) {
-          localStorage.setItem(STORAGE_KEYS.FAQS, newStr)
-          didChange = true
-        }
-      } else {
-        const localFaqs = storageService.getFaqs()
-        if (localFaqs.length > 0) {
-          for (const faq of localFaqs) {
-            fetch('/api/faqs', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ ...faq, type: 'faq', handle: '__faqs' }),
-            }).catch(() => {})
+        const currentHandle = localStorage.getItem(STORAGE_KEYS.CURRENT_USER)
+        if (currentHandle && currentHandle.toUpperCase() !== 'LIT') {
+          const stillExists = cleanedMembers.some((cm) => cm.handle.toLowerCase() === currentHandle.toLowerCase())
+          if (!stillExists) {
+            localStorage.removeItem(STORAGE_KEYS.CURRENT_USER)
+            notify()
           }
         }
       }
-    }
+    })()
 
-    if (didChange) notify()
+    // 2. Articles 독립 동기화
+    const pArticles = (async () => {
+      const res = await fetchWithTimeout('/api/articles')
+      if (res && res.ok) {
+        const json = await res.json().catch(() => null)
+        if (!json) return
+        const cloudArticles = Array.isArray(json.data) ? json.data : []
+        const cleaned = cloudArticles.map((a) => ({
+          id: a.id,
+          title: a.title || '',
+          excerpt: a.excerpt || '',
+          url: a.url || '',
+          learnUrl: a.learnUrl || '',
+          platform: a.platform || 'linkedin',
+          authorHandle: a.authorHandle || '',
+          authorName: a.authorName || '',
+          authorAvatar: a.authorAvatar || '',
+          tags: a.tags || [],
+          likes: a.likes || 0,
+          createdAt: a.createdAt || '',
+        }))
+        const localStr = localStorage.getItem(STORAGE_KEYS.ARTICLES)
+        const newStr = JSON.stringify(cleaned)
+        if (localStr !== newStr) {
+          localStorage.setItem(STORAGE_KEYS.ARTICLES, newStr)
+          notify()
+        }
+      }
+    })()
+
+    // 3. Missions 독립 동기화
+    const pMissions = (async () => {
+      const res = await fetchWithTimeout('/api/missions')
+      if (res && res.ok) {
+        const json = await res.json().catch(() => null)
+        if (!json) return
+        const cloudMissions = Array.isArray(json.data) ? json.data : []
+        if (cloudMissions.length > 0) {
+          const cleaned = cloudMissions.map((m) => ({
+            id: m.id,
+            title: (m.title || '')
+              .replace(/\[주간 미션\]/g, '')
+              .replace(/\[동료 피드백\]/g, '')
+              .replace(/\[부스트 퀘스트\]/g, '')
+              .replace(/\[마일스톤 챌린지\]/g, '')
+              .replace(/\s+/g, ' ')
+              .trim(),
+            desc: m.desc || '',
+            reward: m.reward || '',
+            category: m.category || 'weekly',
+            deadline: m.deadline || '',
+            completedMemberHandles: m.completedMemberHandles || [],
+            active: m.active !== undefined ? m.active : true,
+          }))
+          const localStr = localStorage.getItem(STORAGE_KEYS.MISSIONS)
+          const newStr = JSON.stringify(cleaned)
+          if (localStr !== newStr) {
+            localStorage.setItem(STORAGE_KEYS.MISSIONS, newStr)
+            notify()
+          }
+        }
+      }
+    })()
+
+    // 4. FAQs 독립 동기화
+    const pFaqs = (async () => {
+      const res = await fetchWithTimeout('/api/faqs')
+      if (res && res.ok) {
+        const json = await res.json().catch(() => null)
+        if (!json) return
+        const cloudFaqs = Array.isArray(json.data) ? json.data : []
+        if (cloudFaqs.length > 0) {
+          const cleaned = cloudFaqs
+            .filter((item) => !item.q?.includes('Azure 시스템으로 DB 관리'))
+            .map((item, idx) => ({
+              id: item.id || `faq-${idx + 1}`,
+              q: item.q || '',
+              a: item.a || '',
+              createdAt: item.createdAt || '',
+              updatedAt: item.updatedAt || '',
+            }))
+          const localStr = localStorage.getItem(STORAGE_KEYS.FAQS)
+          const newStr = JSON.stringify(cleaned)
+          if (localStr !== newStr) {
+            localStorage.setItem(STORAGE_KEYS.FAQS, newStr)
+            notify()
+          }
+        }
+      }
+    })()
+
+    await Promise.allSettled([pMembers, pArticles, pMissions, pFaqs])
   } catch (err) {
     console.debug('[Azure Sync] Local-first mode active:', err.message)
   } finally {
@@ -468,7 +518,18 @@ export const storageService = {
     try {
       const data = localStorage.getItem(STORAGE_KEYS.MEMBERS)
       if (data) {
-        const list = JSON.parse(data)
+        let list = JSON.parse(data)
+        const legacyMockHandles = ['minji_kim', 'junho_park', 'sujin_choi', 'hyunjin_lee', 'daeun_jung', 'taeyang_kang', 'yuna_song']
+        const hasLegacyMocks = list.some((m) => legacyMockHandles.includes(m.handle))
+        if (hasLegacyMocks) {
+          list = list.filter((m) => !legacyMockHandles.includes(m.handle))
+          if (list.length === 0) list = [...DEFAULT_MEMBERS]
+          localStorage.setItem(STORAGE_KEYS.MEMBERS, JSON.stringify(list))
+        }
+        if (list.length === 0) {
+          list = [...DEFAULT_MEMBERS]
+          localStorage.setItem(STORAGE_KEYS.MEMBERS, JSON.stringify(list))
+        }
         return list.map((m) => {
           const rawClicks = Number(m.clicks)
           const clicks = isNaN(rawClicks) ? 0 : Math.max(0, rawClicks)
@@ -491,7 +552,7 @@ export const storageService = {
             avatar,
             role: (m.role || '').replace(/MLSA/g, 'MSA'),
             contributorId,
-            certifications: m.certifications || (m.handle === 'shlee' ? 'AI-900, AZ-900' : m.handle === 'minji_kim' ? 'AI-900' : m.handle === 'junho_park' ? 'AZ-900' : ''),
+            certifications: m.certifications || (m.handle === 'shlee' ? 'AI-900, AZ-900' : ''),
             msLink: m.msLink || formatContributorLink(contributorId),
             password: m.password || '1234',
             badges,
@@ -832,7 +893,12 @@ export const storageService = {
     try {
       const data = localStorage.getItem(STORAGE_KEYS.ARTICLES)
       if (data) {
-        const list = JSON.parse(data)
+        let list = JSON.parse(data)
+        const legacyArtIds = ['art-1', 'art-2', 'art-3', 'art-4']
+        if (list.some((a) => legacyArtIds.includes(a.id))) {
+          list = list.filter((a) => !legacyArtIds.includes(a.id))
+          localStorage.setItem(STORAGE_KEYS.ARTICLES, JSON.stringify(list))
+        }
         const members = this.getMembers()
         return list.map((art) => {
           let authorAvatar = art.authorAvatar
