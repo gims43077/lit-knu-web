@@ -5,15 +5,15 @@ import {
   Bell,
   Calendar,
   CheckCircle2,
+  ChevronDown,
   Circle,
   Clock,
   Flame,
-  Gift,
   Plus,
-  Pencil,
   ShieldCheck,
   Sparkles,
   Trash2,
+  Pencil,
   Users,
   X,
 } from 'lucide-react'
@@ -30,10 +30,12 @@ const categoryStyles = {
 
 export default function Missions({ onOpenAuth }) {
   const [missions, setMissions] = useState(storageService.getMissions())
+  const [members, setMembers] = useState(storageService.getMembers())
   const [currentUser, setCurrentUser] = useState(storageService.getCurrentUser())
   const [isAdmin, setIsAdmin] = useState(storageService.isAdmin())
+  const [expandedCompletedId, setExpandedCompletedId] = useState(null)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
-
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [saveError, setSaveError] = useState('')
 
@@ -49,26 +51,27 @@ export default function Missions({ onOpenAuth }) {
   useEffect(() => {
     const unsub = storageService.subscribe(() => {
       setMissions(storageService.getMissions())
+      setMembers(storageService.getMembers())
       setCurrentUser(storageService.getCurrentUser())
       setIsAdmin(storageService.isAdmin())
     })
     return unsub
   }, [])
 
-  const handleToggleComplete = (missionId) => {
+  const handleToggleComplete = async (missionId) => {
     let user = currentUser || storageService.getCurrentUser()
     if (!user) {
       if (onOpenAuth) onOpenAuth()
       return
     }
     const userHandle = user.handle
-    storageService.toggleMissionCompletion(missionId, userHandle)
+    await storageService.toggleMissionCompletion(missionId, userHandle)
     setMissions(storageService.getMissions())
   }
 
-  const handleDeleteMission = (missionId) => {
+  const handleDeleteMission = async (missionId) => {
     if (confirm('정말 이 공지를 삭제하시겠습니까?')) {
-      storageService.deleteMission(missionId)
+      await storageService.deleteMission(missionId)
     }
   }
 
@@ -76,14 +79,16 @@ export default function Missions({ onOpenAuth }) {
     setEditingId(mission?.id ?? null)
     setSaveError('')
     setFormData({
-      title: mission?.title ?? '', desc: mission?.desc ?? '',
-      reward: mission?.reward ?? '', category: mission?.category ?? 'weekly',
+      title: mission?.title ?? '',
+      desc: mission?.desc ?? '',
+      reward: mission?.reward ?? '',
+      category: mission?.category ?? 'weekly',
       deadline: mission?.deadline ?? '',
     })
     setIsAddModalOpen(true)
   }
 
-  const handleSaveMission = (e) => {
+  const handleSaveMission = async (e) => {
     e.preventDefault()
     if (!storageService.isAdmin()) {
       setSaveError('공지사항을 수정할 권한이 없습니다.')
@@ -93,15 +98,22 @@ export default function Missions({ onOpenAuth }) {
       setSaveError('제목과 상세 내용을 입력해주세요.')
       return
     }
+
+    setIsSubmitting(true)
+    setSaveError('')
     try {
       const values = { ...formData, title: formData.title.trim(), desc: formData.desc.trim() }
       if (editingId) {
         const { title, desc, reward, deadline } = values
-        storageService.updateMission(editingId, { title, desc, reward, deadline })
-      } else storageService.addMission(values)
+        await storageService.updateMission(editingId, { title, desc, reward, deadline })
+      } else {
+        await storageService.addMission(values)
+      }
       setIsAddModalOpen(false)
     } catch (error) {
       setSaveError(error.message || '저장하지 못했습니다. 다시 시도해주세요.')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -111,8 +123,8 @@ export default function Missions({ onOpenAuth }) {
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <SectionHeading
             eyebrow="Notice"
-            title=""
-            accent="공지사항"
+            title="공지사항"
+            accent=""
             desc="LIT 공지사항과 주요 일정을 확인하세요."
           />
 
@@ -198,21 +210,42 @@ export default function Missions({ onOpenAuth }) {
                   </p>
 
                   {/* Reward Box */}
-                  <div className="mt-5 flex items-center gap-2 rounded-xl bg-white/[0.03] border border-line p-3">
-                    <Gift className="h-4 w-4 text-amber shrink-0" />
-                    <div className="text-xs">
-                      <span className="font-mono text-[10px] text-muted mr-1.5 uppercase">보상:</span>
+                  {m.reward && (
+                    <div className="mt-5 rounded-xl bg-white/[0.03] border border-line p-3 text-xs">
                       <span className="font-semibold text-fg/90">{m.reward}</span>
                     </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* Footer: Completion status & Participated count */}
                 <div className="mt-6 flex items-center justify-between border-t border-line/70 pt-4">
-                  <div className="flex items-center gap-1.5 font-mono text-xs text-muted">
-                    <Users className="h-3.5 w-3.5" />
-                    <span>{completedCount}명 완료</span>
-                  </div>
+                  {completedCount > 0 ? (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        setExpandedCompletedId(expandedCompletedId === m.id ? null : m.id)
+                      }}
+                      className="flex items-center gap-1.5 font-mono text-xs text-muted hover:text-fg transition-colors group/completed cursor-pointer"
+                      title="완료한 부원 목록 보기"
+                    >
+                      <Users className="h-3.5 w-3.5 text-muted group-hover/completed:text-mint transition-colors" />
+                      <span className="underline decoration-dotted underline-offset-4 group-hover/completed:text-mint">
+                        {completedCount}명 완료
+                      </span>
+                      <ChevronDown
+                        className={`h-3 w-3 transition-transform duration-200 ${
+                          expandedCompletedId === m.id ? 'rotate-180 text-mint' : 'text-muted'
+                        }`}
+                      />
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-1.5 font-mono text-xs text-muted">
+                      <Users className="h-3.5 w-3.5" />
+                      <span>0명 완료</span>
+                    </div>
+                  )}
 
                   <button
                     type="button"
@@ -241,6 +274,50 @@ export default function Missions({ onOpenAuth }) {
                     )}
                   </button>
                 </div>
+
+                {/* 완료한 부원 명단 토글 표시 */}
+                <AnimatePresence>
+                  {expandedCompletedId === m.id && completedCount > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="mt-3 overflow-hidden rounded-xl border border-line bg-surface/80 p-3"
+                    >
+                      <div className="mb-2 text-[11px] font-mono text-muted flex items-center justify-between">
+                        <span>완료한 부원 ({completedCount}명)</span>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto pr-1">
+                        {(m.completedMemberHandles || []).map((handle) => {
+                          const mem = members.find(
+                            (u) => String(u.handle).toLowerCase() === String(handle).toLowerCase()
+                          )
+                          const name = mem?.name || handle
+                          const avatar = mem?.avatar
+                          return (
+                            <div
+                              key={handle}
+                              className="flex items-center gap-1.5 rounded-lg border border-line bg-white/[0.04] px-2.5 py-1 text-xs text-fg"
+                            >
+                              {avatar ? (
+                                <img
+                                  src={avatar}
+                                  alt={name}
+                                  className="h-4 w-4 rounded-full object-cover"
+                                />
+                              ) : (
+                                <div className="flex h-4 w-4 items-center justify-center rounded-full bg-mint/20 text-[10px] text-mint font-bold">
+                                  {name[0]}
+                                </div>
+                              )}
+                              <span className="font-semibold text-fg/90">{name}</span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </motion.div>
             )
           })}
@@ -268,7 +345,9 @@ export default function Missions({ onOpenAuth }) {
               <div className="flex items-center justify-between border-b border-line pb-4">
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="h-5 w-5 text-pink" />
-                  <h3 className="font-display text-xl font-bold text-fg">{editingId ? '공지사항 수정' : '새 공지 등록'}</h3>
+                  <h3 className="font-display text-xl font-bold text-fg">
+                    {editingId ? '공지사항 수정' : '새 공지 등록'}
+                  </h3>
                 </div>
                 <button
                   onClick={() => setIsAddModalOpen(false)}
@@ -278,7 +357,12 @@ export default function Missions({ onOpenAuth }) {
                 </button>
               </div>
 
-              {saveError && <p role="alert" className="mt-4 text-sm text-pink">{saveError}</p>}
+              {saveError && (
+                <p role="alert" className="mt-4 text-sm text-pink">
+                  {saveError}
+                </p>
+              )}
+
               <form onSubmit={handleSaveMission} className="mt-5 space-y-4">
                 <div>
                   <label className="block font-mono text-[11px] uppercase tracking-wider text-muted mb-1.5">
@@ -343,9 +427,10 @@ export default function Missions({ onOpenAuth }) {
                   </button>
                   <button
                     type="submit"
-                    className="rounded-xl bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))] px-5 py-2.5 text-xs font-bold text-bg hover:opacity-90"
+                    disabled={isSubmitting}
+                    className="rounded-xl bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))] px-5 py-2.5 text-xs font-bold text-bg hover:opacity-90 disabled:opacity-50 transition-opacity"
                   >
-                    {editingId ? '변경 내용 저장' : '공지 등록하기'}
+                    {isSubmitting ? '공지 저장 중...' : (editingId ? '변경 내용 저장' : '공지 등록하기')}
                   </button>
                 </div>
               </form>

@@ -4,7 +4,6 @@ import {
   Award,
   ChevronRight,
   Edit3,
-  ExternalLink,
   Flame,
   Plus,
   Search,
@@ -15,12 +14,15 @@ import {
   UserPlus,
   Users,
 } from 'lucide-react'
-import { storageService, MILESTONES } from '../services/storageService.js'
+import { storageService } from '../services/storageService.js'
 import { Reveal, SectionHeading } from './ui/Primitives.jsx'
+import MilestonesModal from './MilestonesModal.jsx'
 
 export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMember, onOpenAuth }) {
   const [members, setMembers] = useState(storageService.getMembers())
   const [isAdmin, setIsAdmin] = useState(storageService.isAdmin())
+  const [milestones, setMilestones] = useState(() => storageService.getMilestones())
+  const [isMilestonesModalOpen, setIsMilestonesModalOpen] = useState(false)
   const [activeTab, setActiveTab] = useState('all') // 'all', '250', '100', '50', '30'
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -28,6 +30,7 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
     const unsub = storageService.subscribe(() => {
       setMembers(storageService.getMembers())
       setIsAdmin(storageService.isAdmin())
+      setMilestones(storageService.getMilestones())
     })
     return unsub
   }, [])
@@ -38,12 +41,10 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
   // 필터 적용
   const filteredMembers = sortedMembers.filter((m) => {
     // 탭 필터
-    if (activeTab === '250' && (m.clicks || 0) < 250) return false
-    if (activeTab === '200' && (m.clicks || 0) < 200) return false
-    if (activeTab === '150' && (m.clicks || 0) < 150) return false
-    if (activeTab === '100' && (m.clicks || 0) < 100) return false
-    if (activeTab === '50' && (m.clicks || 0) < 50) return false
-    if (activeTab === '30' && (m.clicks || 0) < 30) return false
+    if (activeTab !== 'all') {
+      const minCount = Number(activeTab)
+      if (!isNaN(minCount) && (m.clicks || 0) < minCount) return false
+    }
 
     // 검색어 필터
     if (searchQuery.trim()) {
@@ -72,43 +73,23 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
         {/* 1. 체크포인트 단계별 보상 안내 */}
         <Reveal delay={0.1} className="mt-8">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {MILESTONES.map((ml) => {
+            {milestones.map((ml) => {
               const achieversCount = members.filter((m) => (m.clicks || 0) >= ml.count).length
-              const isFinal = ml.count === 250
-              const isHighlight = ml.count === 150 || ml.count === 200
 
               return (
                 <div
                   key={ml.count}
-                  className={`group relative flex items-center gap-3.5 rounded-2xl border p-4 transition-all duration-300 hover:scale-[1.01] ${
-                    isFinal
-                      ? 'border-amber/50 bg-gradient-to-br from-amber/15 via-amber/5 to-surface/80 hover:border-amber'
-                      : isHighlight
-                      ? 'border-violet/40 bg-surface/70 hover:border-violet/70 hover:bg-surface'
-                      : 'border-line bg-surface/50 hover:border-white/30 hover:bg-surface/80'
-                  }`}
+                  className="group relative flex items-center gap-3.5 rounded-2xl border border-line bg-surface/50 p-4 transition-all duration-300 hover:scale-[1.01] hover:border-white/30 hover:bg-surface/80"
                 >
                   {/* Icon badge */}
-                  <div
-                    className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border text-2xl transition-transform group-hover:scale-110 ${
-                      isFinal
-                        ? 'border-amber/40 bg-amber/20'
-                        : isHighlight
-                        ? 'border-violet/30 bg-violet/15'
-                        : 'border-white/10 bg-white/5'
-                    }`}
-                  >
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-2xl transition-transform group-hover:scale-110">
                     {ml.icon}
                   </div>
 
                   {/* Reward details */}
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
-                      <span
-                        className={`font-mono text-xs font-black tracking-wide ${
-                          isFinal ? 'text-amber' : 'text-mint'
-                        }`}
-                      >
+                      <span className="font-mono text-xs font-black tracking-wide text-mint">
                         {ml.count} 조회수
                       </span>
                       <span className="flex items-center gap-1 font-mono text-[11px] text-muted">
@@ -117,13 +98,7 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
                       </span>
                     </div>
 
-                    <h4
-                      className={`mt-1 font-display text-sm sm:text-base font-bold leading-snug tracking-tight ${
-                        isFinal
-                          ? 'text-amber font-black'
-                          : 'text-fg group-hover:text-white'
-                      }`}
-                    >
+                    <h4 className="mt-1 font-display text-sm sm:text-base font-bold leading-snug tracking-tight text-fg group-hover:text-white">
                       {ml.reward}
                     </h4>
                   </div>
@@ -143,49 +118,34 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
                   👑 운영진 관리자 모드 활성
                 </span>
                 <span className="text-xs text-muted hidden md:inline">
-                  · 부원별 클릭수 빠른 조정(+/-) 및 [정보 수정] 버튼을 통해 이름, 소개, 역할을 변경할 수 있습니다.
+                  · 부원 정보 관리 및 조회수 기준/보상 내용/이모티콘을 실시간으로 설정할 수 있습니다.
                 </span>
               </div>
-              <button
-                onClick={() => onOpenAuth?.('register')}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))] px-3.5 py-1.5 text-xs font-bold text-bg transition-transform hover:scale-105 shadow-md shadow-pink/20"
-              >
-                <UserPlus className="h-3.5 w-3.5" />
-                신규 부원 직접 등록
-              </button>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsMilestonesModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-bold text-fg transition-all hover:bg-white/20 hover:border-white/30"
+                >
+                  <Award className="h-3.5 w-3.5 text-mint" />
+                  보상 & 조회수 기준 관리
+                </button>
+                <button
+                  onClick={() => onOpenAuth?.('register')}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))] px-3.5 py-1.5 text-xs font-bold text-bg transition-transform hover:scale-105 shadow-md shadow-pink/20"
+                >
+                  <UserPlus className="h-3.5 w-3.5" />
+                  신규 부원 직접 등록
+                </button>
+              </div>
             </div>
           </Reveal>
         )}
 
-        {/* 2. 컨트롤 바 (필터 탭 및 검색) */}
+        {/* 2. 컨트롤 바 (검색) */}
         <Reveal delay={0.15} className="mt-6">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-wrap gap-1.5">
-              {[
-                { id: 'all', label: '전체' },
-                { id: '250', label: '👑 250' },
-                { id: '200', label: '🍎 200+' },
-                { id: '150', label: '🌳 150+' },
-                { id: '100', label: '🪴 100+' },
-                { id: '50', label: '🌿 50+' },
-                { id: '30', label: '🌱 30+' },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all ${
-                    activeTab === tab.id
-                      ? 'bg-fg text-bg shadow-lg'
-                      : 'glass text-muted hover:text-fg hover:border-white/30'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-
-
-            <div className="relative w-full sm:w-64">
+          <div className="flex justify-end">
+            <div className="relative w-full sm:w-72">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted" />
               <input
                 type="text"
@@ -207,18 +167,10 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
           ) : (
             filteredMembers.map((m, index) => {
               const rank = sortedMembers.findIndex((orig) => orig.handle === m.handle) + 1
-              const percent = Math.min(100, Math.round(((m.clicks || 0) / 250) * 100))
+              const maxMilestoneCount = milestones.length > 0 ? milestones[milestones.length - 1].count : 250
+              const percent = Math.min(100, Math.round(((m.clicks || 0) / maxMilestoneCount) * 100))
               const isTop3 = rank <= 3
-              const isFinished = (m.clicks || 0) >= 250
-
-              const rankGlow =
-                rank === 1
-                  ? 'border-amber/50 bg-amber/5'
-                  : rank === 2
-                  ? 'border-white/40 bg-white/5'
-                  : rank === 3
-                  ? 'border-pink/40 bg-pink/5'
-                  : 'border-line bg-surface/60'
+              const isFinished = (m.clicks || 0) >= maxMilestoneCount
 
               return (
                 <motion.div
@@ -227,12 +179,12 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: index * 0.04 }}
-                  className={`group relative overflow-hidden rounded-2xl border p-4 sm:p-5 transition-all hover:border-white/30 hover:bg-surface ${rankGlow}`}
+                  className="group relative overflow-hidden rounded-2xl sm:rounded-3xl border border-line bg-surface/60 p-5 sm:p-6 transition-all hover:border-white/30 hover:bg-surface"
                 >
                   <div className="flex flex-col">
                     {/* 1. 상단: 순위 & 프로필 정보 (좌측) + 실시간 클릭수 (우측) */}
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-3 sm:items-center">
+                      <div className="flex items-start gap-3 sm:items-center sm:gap-4 min-w-0 flex-1">
                         {/* Rank badge */}
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-display text-lg font-black tracking-tight sm:h-11 sm:w-11 sm:text-xl">
                           <span className="text-muted font-mono text-sm sm:text-base font-bold">#{rank}</span>
@@ -242,23 +194,22 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
                         <img
                           src={m.avatar}
                           alt={m.name}
-                          className="h-11 w-11 sm:h-12 sm:w-12 shrink-0 rounded-xl border border-line object-cover"
+                          className="h-11 w-11 sm:h-12 sm:w-12 shrink-0 rounded-xl border border-line object-cover mt-0.5 sm:mt-0"
                         />
 
-                        {/* Name & Major (이름은 100% 온전히 보이고 절대 잘리지 않음) */}
+                        {/* Name & Major (모바일에서도 소개가 잘리지 않고 온전히 표시) */}
                         <div className="min-w-0 flex-1">
-                          <div className="font-display text-base sm:text-lg font-bold text-fg leading-tight whitespace-nowrap">
+                          <div className="font-display text-base sm:text-lg font-bold text-fg leading-tight">
                             {m.name}
                           </div>
-                          <p className="mt-1 text-xs text-muted truncate">
-                            <span className="font-mono text-[11px] text-muted mr-1.5">@{m.handle}</span>
-                            <span>· {m.role} · {m.major}</span>
+                          <p className="mt-1 text-xs leading-relaxed text-muted line-clamp-2 sm:line-clamp-1 break-words">
+                            {[m.role, m.major].filter(Boolean).join(' · ')}
                           </p>
                         </div>
                       </div>
 
                       {/* Clicks & Percent (상단 우측 정렬) */}
-                      <div className="text-right shrink-0">
+                      <div className="text-right shrink-0 pt-0.5 sm:pt-0">
                         <div className="flex items-baseline justify-end gap-1 sm:gap-1.5">
                           <span className="font-sans text-xl sm:text-3xl font-black text-fg">
                             {m.clicks || 0}
@@ -367,16 +318,6 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
                           <span>글 모음</span>
                           <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted" />
                         </button>
-
-                        <a
-                          href={m.msLink}
-                          target="_blank"
-                          rel="noreferrer"
-                          title="부원의 MS Learn 챌린지 링크 열기 (클릭 지원)"
-                          className="glass inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-muted transition-colors hover:text-mint hover:border-mint/40"
-                        >
-                          <ExternalLink className="h-3.5 w-3.5" />
-                        </a>
                       </div>
                     </div>
                   </div>
@@ -386,6 +327,11 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
           )}
         </div>
       </div>
+
+      <MilestonesModal
+        isOpen={isMilestonesModalOpen}
+        onClose={() => setIsMilestonesModalOpen(false)}
+      />
     </section>
   )
 }

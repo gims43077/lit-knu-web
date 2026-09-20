@@ -81,9 +81,9 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-16 flex flex-col items-start justify-between gap-4 border-t border-line pt-6 font-mono text-[11px] uppercase tracking-[0.2em] text-muted sm:flex-row sm:items-center">
-          <span>© {new Date().getFullYear()} LIT · Learn It, Teach</span>
-          <span>LIT</span>
+        <div className="mt-16 flex flex-row items-center justify-between gap-2 border-t border-line pt-6 font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.12em] sm:tracking-[0.2em] text-muted">
+          <span className="truncate sm:overflow-visible">© {new Date().getFullYear()} LIT · Learn It, Teach</span>
+          <span className="shrink-0">LIT</span>
         </div>
       </div>
 

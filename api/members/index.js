@@ -4,12 +4,21 @@ module.exports = async function (context, req) {
   const container = await getCosmosContainer()
   const inMemory = getInMemoryStore()
 
+  const blockedHandles = new Set([
+    'shlee', 'minji_kim', 'junho_park', 'sujin_choi', 'dohyun_lee', 'chaewon_yoon', 'taeyang_jung', 'yejin_han', 'sanjun', 'aa'
+  ])
+
   // 1. GET: 부원 전체 목록 조회
   if (req.method === 'GET') {
     if (container) {
       try {
         const { resources } = await container.items.query('SELECT * FROM c').fetchAll()
-        const members = resources.filter((r) => !r.type || r.type === 'member')
+        const members = resources.filter((r) => {
+          if (r.type && r.type !== 'member') return false
+          const h = String(r.handle || r.id || '').trim().toLowerCase()
+          if (blockedHandles.has(h) || r.name === '이승환') return false
+          return true
+        })
         context.res = {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
@@ -22,10 +31,14 @@ module.exports = async function (context, req) {
     }
 
     // Fallback store
+    const fbMembers = inMemory.members.filter((r) => {
+      const h = String(r.handle || r.id || '').trim().toLowerCase()
+      return !blockedHandles.has(h) && r.name !== '이승환'
+    })
     context.res = {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
-      body: { success: true, count: inMemory.members.length, data: inMemory.members, source: 'in-memory' },
+      body: { success: true, count: fbMembers.length, data: fbMembers, source: 'in-memory' },
     }
     return
   }
@@ -40,10 +53,16 @@ module.exports = async function (context, req) {
       return
     }
 
+    if (blockedHandles.has(handle) || member.name === '이승환') {
+      context.res = { status: 400, body: { success: false, message: '더미 계정은 등록할 수 없습니다.' } }
+      return
+    }
+
     const doc = {
       ...member,
       handle,
       id: handle,
+      type: 'member',
       updatedAt: new Date().toISOString(),
     }
 
@@ -96,6 +115,14 @@ module.exports = async function (context, req) {
         return
       } catch (err) {
         context.log.error('Cosmos DB delete error:', err)
+        if (err.code === 404) {
+          context.res = {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+            body: { success: true, message: `${handle} 부원이 이미 삭제되었습니다.`, source: 'azure-cosmos-db' },
+          }
+          return
+        }
       }
     }
 

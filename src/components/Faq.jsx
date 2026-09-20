@@ -98,6 +98,7 @@ export default function Faq() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingFaq, setEditingFaq] = useState(null)
   const [formData, setFormData] = useState({ q: '', a: '' })
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
     setFaqs(storageService.getFaqs())
@@ -125,35 +126,40 @@ export default function Faq() {
   }
 
   // 삭제 처리
-  const handleDeleteFaq = (item) => {
+  const handleDeleteFaq = async (item) => {
     if (confirm(`"${item.q}" 질문을 삭제하시겠습니까?`)) {
-      storageService.deleteFaq(item.id)
+      await storageService.deleteFaq(item.id)
     }
   }
 
   // 저장 처리 (추가 또는 수정)
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!formData.q.trim() || !formData.a.trim()) {
       alert('질문과 답변을 모두 입력해 주세요.')
       return
     }
 
-    if (editingFaq) {
-      storageService.updateFaq(editingFaq.id, {
-        q: formData.q,
-        a: formData.a,
-      })
-    } else {
-      storageService.addFaq({
-        q: formData.q,
-        a: formData.a,
-      })
-    }
+    setIsSubmitting(true)
+    try {
+      if (editingFaq) {
+        await storageService.updateFaq(editingFaq.id, {
+          q: formData.q,
+          a: formData.a,
+        })
+      } else {
+        await storageService.addFaq({
+          q: formData.q,
+          a: formData.a,
+        })
+      }
 
-    setIsModalOpen(false)
-    setEditingFaq(null)
-    setFormData({ q: '', a: '' })
+      setIsModalOpen(false)
+      setEditingFaq(null)
+      setFormData({ q: '', a: '' })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -294,10 +300,11 @@ export default function Faq() {
                   </button>
                   <button
                     type="submit"
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-mint px-5 py-2.5 text-xs font-bold text-bg hover:bg-mint/90 transition-colors shadow-md shadow-mint/10"
+                    disabled={isSubmitting}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-mint px-5 py-2.5 text-xs font-bold text-bg hover:bg-mint/90 transition-colors shadow-md shadow-mint/10 disabled:opacity-50"
                   >
                     <CheckCircle2 className="h-3.5 w-3.5" />
-                    <span>{editingFaq ? '수정 완료' : '등록하기'}</span>
+                    <span>{isSubmitting ? '저장 중...' : (editingFaq ? '수정 완료' : '등록하기')}</span>
                   </button>
                 </div>
               </form>
