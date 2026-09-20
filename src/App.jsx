@@ -17,7 +17,6 @@ import Footer from './components/Footer.jsx'
 
 import AuthModal from './components/AuthModal.jsx'
 import ProfileModal from './components/ProfileModal.jsx'
-import AzureSyncModal from './components/AzureSyncModal.jsx'
 import { storageService } from './services/storageService.js'
 
 export default function App() {
@@ -26,7 +25,6 @@ export default function App() {
   const [authTab, setAuthTab] = useState('login')
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [profileTarget, setProfileTarget] = useState(null)
-  const [isAzureOpen, setIsAzureOpen] = useState(false)
   const [authorFilter, setAuthorFilter] = useState(null)
 
   // Lenis smooth scroll
@@ -98,7 +96,6 @@ export default function App() {
       <Nav
         onOpenAuth={() => handleOpenAuth('login')}
         onOpenProfile={() => handleOpenProfile(null)}
-        onOpenAzure={() => setIsAzureOpen(true)}
       />
 
       <main>
@@ -146,12 +143,6 @@ export default function App() {
         isOpen={isProfileOpen}
         onClose={handleCloseProfile}
         targetMember={profileTarget}
-      />
-      <AzureSyncModal
-        isOpen={isAzureOpen}
-        onClose={() => setIsAzureOpen(false)}
-        onEditMember={(member) => handleOpenProfile(member)}
-        onOpenRegister={() => handleOpenAuth('register')}
       />
     </MotionConfig>
   )

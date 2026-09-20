@@ -7,6 +7,7 @@ const STORAGE_KEYS = {
   MISSIONS: 'lit_msa_missions_v1',
   CURRENT_USER: 'lit_msa_current_user_v1',
   IS_ADMIN: 'lit_msa_is_admin_v1',
+  FAQS: 'lit_msa_faqs_v1',
 }
 
 // 기본 마일스톤 및 리워드 정의
@@ -356,6 +357,35 @@ const DEFAULT_MISSIONS = [
     deadline: '2026-10-31',
     completedMemberHandles: ['shlee', 'minji_kim', 'junho_park', 'taeyang_jung'],
     active: true,
+  },
+]
+
+// 초기 FAQ 목업 데이터 (관리자 추가/수정/삭제 지원)
+const DEFAULT_FAQS = [
+  {
+    id: 'faq-1',
+    q: 'MSA(Microsoft Student Ambassadors) 챌린지란 무엇인가요?',
+    a: 'Microsoft가 전 세계 학생 리더들을 육성하는 공식 프로그램의 일환으로, 각 부원에게 부여된 Microsoft Learn 고유 추천 링크를 통해 250명의 클릭/참여를 달성하는 챌린지입니다. 배운 내용을 사람들에게 나누고 기술을 널리 알리는 Tech Evangelism 활동의 공식 증명이 됩니다.',
+  },
+  {
+    id: 'faq-2',
+    q: '내 고유 링크(250 클릭 링크)는 어떻게 만드나요?',
+    a: 'Microsoft Learn 포털(learn.microsoft.com)에 로그인 후, Ambassador 프로필 또는 특정 모듈 링크 뒤에 본인의 고유 태그(?wt.mc_id=studentamb_XXXXXX)를 붙여 발급받습니다. 발급받은 링크를 본 웹사이트의 [내 프로필]에 등록해 두면 언제든 쉽게 복사하고 공유할 수 있습니다.',
+  },
+  {
+    id: 'faq-3',
+    q: '체크포인트(30, 50, 100, 150, 200, 250) 리워드는 어떻게 받나요?',
+    a: '본인의 대시보드에서 클릭수를 업데이트하면 리더보드에 자동으로 뱃지가 부여됩니다. 30 클릭(커피 기프티콘), 50 클릭(편의점 기프티콘), 100 클릭(케익 기프티콘), 150 클릭(치킨 기프티콘), 200 클릭(자격증 응시비 지원), 250 클릭(MSA 달성) 시 운영진이 확인 후 리워드를 전달합니다.',
+  },
+  {
+    id: 'faq-4',
+    q: '내가 쓴 글 링크는 어떻게 공유하나요?',
+    a: 'LinkedIn, Velog, Tistory, Medium 등에 학습 글을 기고한 뒤, 웹 상단의 [새 글 공유하기] 버튼을 눌러 링크와 간단한 설명을 등록하면 LIT 피드에 즉시 노출됩니다. 내 글의 공유 링크(?author=내아이디)를 친구나 SNS에 보내면 내가 쓴 글들이 최우선으로 노출되면서도 동아리 전체 글도 함께 탐색할 수 있습니다.',
+  },
+  {
+    id: 'faq-5',
+    q: 'MS 공인 자격증(AI-900, AZ-900 등)은 어떻게 등록하나요?',
+    a: '내 프로필 수정 화면에서 보유한 Microsoft 공인 자격증(예: AI-900, AZ-900, DP-900 등)을 입력하시면 리더보드와 내 대시보드에 공식 인증 뱃지가 자동으로 표시됩니다.',
   },
 ]
 
@@ -786,7 +816,69 @@ export const storageService = {
     notify()
   },
 
-  // 5. Cloud Backup & JSON Export
+  // 5. FAQs (자주 묻는 질문 - 관리자 CRUD)
+  getFaqs() {
+    try {
+      const data = localStorage.getItem(STORAGE_KEYS.FAQS)
+      if (data) {
+        const parsed = JSON.parse(data)
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // 구버전 Azure 질문 제거 및 ID 보정
+          return parsed
+            .filter((item) => !item.q?.includes('Azure 시스템으로 DB 관리'))
+            .map((item, idx) => ({
+              ...item,
+              id: item.id || `faq-${idx + 1}`,
+            }))
+        }
+      }
+    } catch (e) {
+      console.warn('LocalStorage FAQ read error:', e)
+    }
+    localStorage.setItem(STORAGE_KEYS.FAQS, JSON.stringify(DEFAULT_FAQS))
+    return DEFAULT_FAQS
+  },
+
+  addFaq(faqItem) {
+    const faqs = this.getFaqs()
+    const newFaq = {
+      id: `faq-${Date.now()}`,
+      q: faqItem.q?.trim() || '새로운 질문',
+      a: faqItem.a?.trim() || '',
+      createdAt: new Date().toISOString(),
+    }
+    faqs.push(newFaq)
+    localStorage.setItem(STORAGE_KEYS.FAQS, JSON.stringify(faqs))
+    notify()
+    return newFaq
+  },
+
+  updateFaq(faqId, partial) {
+    const faqs = this.getFaqs()
+    const updated = faqs.map((item) => {
+      if (item.id === faqId) {
+        return {
+          ...item,
+          q: partial.q !== undefined ? partial.q.trim() : item.q,
+          a: partial.a !== undefined ? partial.a.trim() : item.a,
+          updatedAt: new Date().toISOString(),
+        }
+      }
+      return item
+    })
+    localStorage.setItem(STORAGE_KEYS.FAQS, JSON.stringify(updated))
+    notify()
+    return updated.find((f) => f.id === faqId)
+  },
+
+  deleteFaq(faqId) {
+    const faqs = this.getFaqs().filter((item) => item.id !== faqId)
+    localStorage.setItem(STORAGE_KEYS.FAQS, JSON.stringify(faqs))
+    notify()
+    return true
+  },
+
+  // 6. Cloud Backup & JSON Export
   exportAllData() {
     return {
       version: '1.0',
@@ -796,6 +888,7 @@ export const storageService = {
       members: this.getMembers(),
       articles: this.getArticles(),
       missions: this.getMissions(),
+      faqs: this.getFaqs(),
     }
   },
 
@@ -804,6 +897,9 @@ export const storageService = {
       localStorage.setItem(STORAGE_KEYS.MEMBERS, JSON.stringify(jsonObj.members))
       localStorage.setItem(STORAGE_KEYS.ARTICLES, JSON.stringify(jsonObj.articles))
       localStorage.setItem(STORAGE_KEYS.MISSIONS, JSON.stringify(jsonObj.missions))
+      if (jsonObj.faqs) {
+        localStorage.setItem(STORAGE_KEYS.FAQS, JSON.stringify(jsonObj.faqs))
+      }
       notify()
       return true
     }
@@ -814,6 +910,7 @@ export const storageService = {
     localStorage.setItem(STORAGE_KEYS.MEMBERS, JSON.stringify(DEFAULT_MEMBERS))
     localStorage.setItem(STORAGE_KEYS.ARTICLES, JSON.stringify(DEFAULT_ARTICLES))
     localStorage.setItem(STORAGE_KEYS.MISSIONS, JSON.stringify(DEFAULT_MISSIONS))
+    localStorage.setItem(STORAGE_KEYS.FAQS, JSON.stringify(DEFAULT_FAQS))
     localStorage.setItem(STORAGE_KEYS.CURRENT_USER, 'shlee')
     localStorage.setItem(STORAGE_KEYS.IS_ADMIN, 'false')
     notify()

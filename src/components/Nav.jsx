@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { AnimatePresence, motion, useMotionValueEvent, useScroll } from 'framer-motion'
 import {
   ArrowUpRight,
-  Cloud,
   Menu,
   ShieldCheck,
   Sparkles,
@@ -15,7 +14,7 @@ import MagneticButton from './ui/MagneticButton.jsx'
 import { links, nav } from '../data/site.js'
 import { storageService } from '../services/storageService.js'
 
-export default function Nav({ onOpenAuth, onOpenProfile, onOpenAzure }) {
+export default function Nav({ onOpenAuth, onOpenProfile }) {
   const [hidden, setHidden] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
@@ -73,16 +72,6 @@ export default function Nav({ onOpenAuth, onOpenProfile, onOpenAzure }) {
 
           {/* User Account & Actions bar */}
           <div className="flex items-center gap-2">
-            {/* Azure DB Management trigger */}
-            <button
-              onClick={onOpenAzure}
-              title="Azure 클라우드 DB 연동 관리"
-              className="glass hidden sm:inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs text-muted transition-colors hover:text-fg hover:border-mint/50"
-            >
-              <Cloud className="h-3.5 w-3.5 text-mint" />
-              <span className="hidden md:inline">Azure DB</span>
-            </button>
-
             {/* Current user chip */}
             {currentUser ? (
               <div className="flex items-center gap-1.5">
