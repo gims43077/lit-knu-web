@@ -7,15 +7,6 @@ import { links } from '../data/site.js'
 
 const ease = [0.16, 1, 0.3, 1]
 
-const chips = [
-  { t: 'Azure Cosmos DB', x: '8%', y: '22%', r: '-8deg', d: '0s' },
-  { t: 'MSA 250 Clicks', x: '82%', y: '18%', r: '6deg', d: '-2s' },
-  { t: 'LinkedIn Relay', x: '88%', y: '58%', r: '-5deg', d: '-4s' },
-  { t: 'MS Learn', x: '6%', y: '66%', r: '7deg', d: '-1s' },
-  { t: 'Leaderboard', x: '74%', y: '80%', r: '-4deg', d: '-3s' },
-  { t: 'Learn It, Teach', x: '18%', y: '84%', r: '5deg', d: '-5s' },
-]
-
 function Letters({ text, className = '', delay = 0, ready, gradient = false }) {
   const chars = text.split('')
   return (
@@ -50,8 +41,6 @@ export default function Hero({ ready }) {
   const py = useSpring(my, { stiffness: 40, damping: 20 })
   const blob1 = { x: useTransform(px, (v) => v * 40), y: useTransform(py, (v) => v * 40) }
   const blob2 = { x: useTransform(px, (v) => v * -60), y: useTransform(py, (v) => v * -30) }
-  const chipX = useTransform(px, (v) => v * -22)
-  const chipY = useTransform(py, (v) => v * -22)
 
   const onMove = (e) => {
     const r = ref.current.getBoundingClientRect()
@@ -81,22 +70,6 @@ export default function Hero({ ready }) {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,var(--color-bg)_95%)]" />
       </motion.div>
 
-
-      {/* Floating chips */}
-      <motion.div className="pointer-events-none absolute inset-0 -z-0 hidden md:block" style={{ x: chipX, y: chipY }}>
-        {chips.map((c, i) => (
-          <motion.span
-            key={c.t}
-            className="glass absolute rounded-full px-3.5 py-1.5 font-mono text-[11px] tracking-wider text-fg/80 animate-float"
-            style={{ left: c.x, top: c.y, '--r': c.r, animationDelay: c.d }}
-            initial={{ opacity: 0, scale: 0.6 }}
-            animate={ready ? { opacity: 1, scale: 1 } : {}}
-            transition={{ duration: 0.8, ease, delay: 1.1 + i * 0.08 }}
-          >
-            {c.t}
-          </motion.span>
-        ))}
-      </motion.div>
 
       {/* Content */}
       <motion.div

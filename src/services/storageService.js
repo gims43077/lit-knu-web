@@ -2,11 +2,11 @@
 // LocalStorage 기반 즉시 반응형 스토어 + Pub/Sub 이벤트 버스 탑재
 
 const STORAGE_KEYS = {
-  MEMBERS: 'lit_msa_members_v2',
+  MEMBERS: 'lit_msa_members_v3',
   ARTICLES: 'lit_msa_articles_v1',
   MISSIONS: 'lit_msa_missions_v1',
-  CURRENT_USER: 'lit_msa_current_user_v1',
-  IS_ADMIN: 'lit_msa_is_admin_v1',
+  CURRENT_USER: 'lit_msa_current_user_v2',
+  IS_ADMIN: 'lit_msa_is_admin_v2',
   FAQS: 'lit_msa_faqs_v1',
 }
 
@@ -459,7 +459,7 @@ const DEFAULT_MISSIONS = [
   },
   {
     id: 'mis-4',
-    title: '👑 100 Clicks 돌파하고 Microsoft 자격증 바우처 신청하기',
+    title: '👑 100 조회수 돌파하고 Microsoft 자격증 바우처 신청하기',
     desc: '누적 100 클릭을 달성한 부원은 운영진에게 알려주시면 GH-900 또는 AI-900 공식 시험 응시권(100% 지원)을 지급해 드립니다.',
     reward: '🎓 Microsoft 공인 자격증 시험 바우처 전액 지원',
     deadline: '2026-10-31',
@@ -747,17 +747,17 @@ export const storageService = {
 
   // 2. Current User & Admin
   getCurrentUser() {
-    const currentHandle = localStorage.getItem(STORAGE_KEYS.CURRENT_USER) || 'shlee'
+    const currentHandle = localStorage.getItem(STORAGE_KEYS.CURRENT_USER)
+    if (!currentHandle) {
+      return null
+    }
     if (String(currentHandle).toUpperCase() === 'LIT') {
       if (!this.isAdmin()) {
         localStorage.setItem(STORAGE_KEYS.IS_ADMIN, 'true')
       }
       return ADMIN_MEMBER
     }
-    const member = this.getMember(currentHandle)
-    if (member) return member
-    const members = this.getMembers()
-    return members[0] || DEFAULT_MEMBERS[0]
+    return this.getMember(currentHandle) || null
   },
 
   setCurrentUser(handle) {
@@ -1061,7 +1061,7 @@ export const storageService = {
     localStorage.setItem(STORAGE_KEYS.ARTICLES, JSON.stringify(DEFAULT_ARTICLES))
     localStorage.setItem(STORAGE_KEYS.MISSIONS, JSON.stringify(DEFAULT_MISSIONS))
     localStorage.setItem(STORAGE_KEYS.FAQS, JSON.stringify(DEFAULT_FAQS))
-    localStorage.setItem(STORAGE_KEYS.CURRENT_USER, 'shlee')
+    localStorage.removeItem(STORAGE_KEYS.CURRENT_USER)
     localStorage.setItem(STORAGE_KEYS.IS_ADMIN, 'false')
     notify()
   },

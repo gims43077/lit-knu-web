@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { AnimatePresence, motion, useMotionValueEvent, useScroll } from 'framer-motion'
 import {
   ArrowUpRight,
+  LogIn,
   Menu,
   ShieldCheck,
   Sparkles,
@@ -72,7 +73,6 @@ export default function Nav({ onOpenAuth, onOpenProfile }) {
 
           {/* User Account & Actions bar */}
           <div className="flex items-center gap-2">
-            {/* Current user chip */}
             {currentUser ? (
               <div className="flex items-center gap-1.5">
                 <button
@@ -100,18 +100,26 @@ export default function Nav({ onOpenAuth, onOpenProfile }) {
                     Admin
                   </span>
                 )}
-              </div>
-            ) : null}
 
-            {/* Switch Account / Auth Button */}
-            <button
-              onClick={onOpenAuth}
-              className="glass inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs text-muted transition-colors hover:text-fg hover:border-white/30"
-              title="부원 계정 전환 및 관리자 로그인"
-            >
-              <Users className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">계정</span>
-            </button>
+                <button
+                  onClick={onOpenAuth}
+                  className="glass inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs text-muted transition-colors hover:text-fg hover:border-white/30"
+                  title="부원 계정 전환 및 관리자 로그인"
+                >
+                  <Users className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">계정</span>
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={onOpenAuth}
+                className="inline-flex items-center gap-1.5 rounded-full bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))] px-3.5 py-1.5 text-xs font-bold text-bg shadow-sm transition-transform hover:scale-105"
+                title="부원 로그인 / 참가하기"
+              >
+                <LogIn className="h-3.5 w-3.5" />
+                <span>로그인</span>
+              </button>
+            )}
 
             {/* Mobile menu trigger */}
             <button

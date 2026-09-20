@@ -66,7 +66,7 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
           eyebrow="Leaderboard"
           title="LIT"
           accent="리더보드"
-          desc="부원별 달성 클릭수와 단계별 달성 보상입니다."
+          desc="부원별 달성 조회수와 단계별 보상입니다."
         />
 
         {/* 1. 체크포인트 단계별 보상 안내 */}
@@ -109,7 +109,7 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
                           isFinal ? 'text-amber' : 'text-mint'
                         }`}
                       >
-                        {ml.count} Clicks
+                        {ml.count} 조회수
                       </span>
                       <span className="flex items-center gap-1 font-mono text-[11px] text-muted">
                         <Users className="h-3 w-3" />
@@ -229,56 +229,46 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
                   transition={{ duration: 0.4, delay: index * 0.04 }}
                   className={`group relative overflow-hidden rounded-2xl border p-4 sm:p-5 transition-all hover:border-white/30 hover:bg-surface ${rankGlow}`}
                 >
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    {/* Rank & Profile Info */}
-                    <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-                      {/* Rank badge */}
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-display text-lg font-black tracking-tight sm:h-12 sm:w-12 sm:text-xl">
-                        {rank === 1 ? (
-                          <span className="text-amber drop-shadow-[0_0_8px_rgba(255,209,102,0.6)]">🥇 1</span>
-                        ) : rank === 2 ? (
-                          <span className="text-fg drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]">🥈 2</span>
-                        ) : rank === 3 ? (
-                          <span className="text-pink drop-shadow-[0_0_8px_rgba(255,111,177,0.5)]">🥉 3</span>
-                        ) : (
-                          <span className="text-muted font-mono text-sm">#{rank}</span>
-                        )}
-                      </div>
-
-                      {/* Avatar */}
-                      <img
-                        src={m.avatar}
-                        alt={m.name}
-                        className="h-11 w-11 shrink-0 rounded-xl border border-line object-cover sm:h-12 sm:w-12"
-                      />
-
-                      {/* Name, role, major */}
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-display text-base font-bold text-fg sm:text-lg">
-                            {m.name}
-                          </span>
-                          <span className="font-mono text-xs text-muted">@{m.handle}</span>
-                          {isFinished && (
-                            <span className="rounded-full border border-mint/40 bg-mint/15 px-2 py-0.5 font-mono text-[10px] font-bold text-mint whitespace-nowrap">
-                              👑 250 달성!
-                            </span>
+                  <div className="flex flex-col">
+                    {/* 1. 상단: 순위 & 프로필 정보 (좌측) + 실시간 클릭수 (우측) */}
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                        {/* Rank badge */}
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-display text-lg font-black tracking-tight sm:h-11 sm:w-11 sm:text-xl">
+                          {rank === 1 ? (
+                            <span className="text-amber drop-shadow-[0_0_8px_rgba(255,209,102,0.6)]">🥇 1</span>
+                          ) : rank === 2 ? (
+                            <span className="text-fg drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]">🥈 2</span>
+                          ) : rank === 3 ? (
+                            <span className="text-pink drop-shadow-[0_0_8px_rgba(255,111,177,0.5)]">🥉 3</span>
+                          ) : (
+                            <span className="text-muted font-mono text-sm">#{rank}</span>
                           )}
                         </div>
-                        <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted">
-                          <span className="truncate">{m.role} · {m.major}</span>
-                          {m.certifications && (
-                            <span className="inline-flex items-center gap-1 rounded bg-cyan/10 border border-cyan/30 px-1.5 py-0.5 font-mono text-[10px] font-medium text-cyan whitespace-nowrap">
-                              🎓 {m.certifications}
+
+                        {/* Avatar */}
+                        <img
+                          src={m.avatar}
+                          alt={m.name}
+                          className="h-10 w-10 sm:h-11 sm:w-11 shrink-0 rounded-xl border border-line object-cover"
+                        />
+
+                        {/* Name & Major (2줄 고정으로 모든 카드 높이 균일 유지) */}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5 truncate">
+                            <span className="font-display text-base font-bold text-fg sm:text-lg truncate">
+                              {m.name}
                             </span>
-                          )}
+                            <span className="font-mono text-xs text-muted truncate">@{m.handle}</span>
+                          </div>
+                          <p className="mt-0.5 text-xs text-muted truncate">
+                            {m.role} · {m.major}
+                          </p>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Clicks, Progress & Action buttons */}
-                    <div className="flex items-center justify-between gap-4 sm:gap-6 sm:justify-end shrink-0">
-                      <div className="text-right shrink-0 min-w-[110px] sm:min-w-[130px]">
+                      {/* Clicks & Percent (상단 우측 정렬) */}
+                      <div className="text-right shrink-0">
                         <div className="flex items-baseline justify-end gap-1.5">
                           <span className="font-sans text-2xl font-black text-fg sm:text-3xl">
                             {m.clicks || 0}
@@ -288,25 +278,46 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
                             ({percent}%)
                           </span>
                         </div>
+                      </div>
+                    </div>
 
-                        {/* Progress Bar */}
-                        <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
-                          <div
-                            style={{ width: `${percent}%` }}
-                            className={`h-full rounded-full ${
-                              isFinished
-                                ? 'bg-mint'
-                                : isTop3
-                                ? 'bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))]'
-                                : 'bg-violet'
-                            }`}
-                          />
-                        </div>
+                    {/* 2. 중단: 전체 너비 프로그레스 게이지 (시원하고 안정적인 배치) */}
+                    <div className="mt-3.5 sm:mt-4 w-full">
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
+                        <div
+                          style={{ width: `${percent}%` }}
+                          className={`h-full rounded-full transition-all duration-500 ${
+                            isFinished
+                              ? 'bg-mint shadow-[0_0_8px_rgba(94,240,214,0.5)]'
+                              : isTop3
+                              ? 'bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))]'
+                              : 'bg-violet'
+                          }`}
+                        />
+                      </div>
+                    </div>
 
+                    {/* 3. 하단: 뱃지/자격증 (좌측) + 액션 버튼 (우측) */}
+                    <div className="mt-3 flex items-center justify-between gap-2 min-h-[36px]">
+                      {/* Badges container */}
+                      <div className="flex flex-wrap items-center gap-1.5 min-w-0">
+                        {isFinished && (
+                          <span className="rounded-full border border-mint/40 bg-mint/15 px-2 py-0.5 font-mono text-[10px] font-bold text-mint whitespace-nowrap">
+                            👑 250 달성!
+                          </span>
+                        )}
+                        {m.certifications && (
+                          <span className="inline-flex items-center gap-1 rounded bg-cyan/10 border border-cyan/30 px-1.5 py-0.5 font-mono text-[10px] font-medium text-cyan whitespace-nowrap">
+                            🎓 {m.certifications}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Action buttons & Admin quick click buttons */}
+                      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                         {/* 관리자용 클릭수 빠른 증감 (+/-) */}
                         {isAdmin && (
-                          <div className="mt-1.5 flex items-center justify-end gap-1">
-                            <span className="font-mono text-[9px] text-muted mr-0.5">조정:</span>
+                          <div className="flex items-center gap-1 mr-1">
                             <button
                               type="button"
                               onClick={(e) => {
@@ -314,7 +325,7 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
                                 storageService.updateMemberClicks(m.handle, -1)
                               }}
                               title={`${m.name} 클릭수 -1`}
-                              className="glass flex h-6 px-1.5 items-center justify-center rounded-md font-mono text-[11px] font-bold text-muted transition-all active:scale-90 hover:text-pink hover:border-pink/50 hover:bg-pink/15 cursor-pointer"
+                              className="glass flex h-7 px-1.5 items-center justify-center rounded-lg font-mono text-[11px] font-bold text-muted transition-all active:scale-90 hover:text-pink hover:border-pink/50 hover:bg-pink/15 cursor-pointer"
                             >
                               -1
                             </button>
@@ -325,7 +336,7 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
                                 storageService.updateMemberClicks(m.handle, 1)
                               }}
                               title={`${m.name} 클릭수 +1`}
-                              className="glass flex h-6 px-1.5 items-center justify-center rounded-md font-mono text-[11px] font-bold text-muted transition-all active:scale-90 hover:text-mint hover:border-mint/50 hover:bg-mint/15 cursor-pointer"
+                              className="glass flex h-7 px-1.5 items-center justify-center rounded-lg font-mono text-[11px] font-bold text-muted transition-all active:scale-90 hover:text-mint hover:border-mint/50 hover:bg-mint/15 cursor-pointer"
                             >
                               +1
                             </button>
@@ -336,22 +347,19 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
                                 storageService.updateMemberClicks(m.handle, 5)
                               }}
                               title={`${m.name} 클릭수 +5`}
-                              className="glass flex h-6 px-1.5 items-center justify-center rounded-md font-mono text-[11px] font-bold text-muted transition-all active:scale-90 hover:text-mint hover:border-mint/50 hover:bg-mint/15 cursor-pointer"
+                              className="glass flex h-7 px-1.5 items-center justify-center rounded-lg font-mono text-[11px] font-bold text-muted transition-all active:scale-90 hover:text-mint hover:border-mint/50 hover:bg-mint/15 cursor-pointer"
                             >
                               +5
                             </button>
                           </div>
                         )}
-                      </div>
 
-                      {/* Action buttons */}
-                      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                         {isAdmin && (
                           <button
                             type="button"
                             onClick={() => onEditMember?.(m)}
                             title={`${m.name} 부원의 정보, 소개, 클릭수 직접 관리`}
-                            className="inline-flex items-center gap-1 rounded-xl border border-pink/40 bg-pink/15 px-3 py-2 text-xs font-semibold text-pink whitespace-nowrap shrink-0 transition-all hover:bg-pink/25 hover:border-pink"
+                            className="inline-flex items-center gap-1 rounded-xl border border-pink/40 bg-pink/15 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-pink whitespace-nowrap shrink-0 transition-all hover:bg-pink/25 hover:border-pink"
                           >
                             <Edit3 className="h-3.5 w-3.5" />
                             <span className="hidden sm:inline">정보 수정</span>
@@ -362,7 +370,7 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
                         <button
                           onClick={() => onFilterAuthor(m.handle)}
                           title="이 부원이 작성한 글 모음 보기"
-                          className="glass inline-flex items-center justify-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-semibold text-fg whitespace-nowrap shrink-0 transition-all hover:bg-white/10 hover:border-mint/50"
+                          className="glass inline-flex items-center justify-center gap-1 rounded-xl px-3 py-1.5 text-xs font-semibold text-fg whitespace-nowrap shrink-0 transition-all hover:bg-white/10 hover:border-mint/50"
                         >
                           <span>글 모음</span>
                           <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted" />
@@ -373,9 +381,9 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
                           target="_blank"
                           rel="noreferrer"
                           title="부원의 MS Learn 챌린지 링크 열기 (클릭 지원)"
-                          className="glass inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-muted transition-colors hover:text-mint hover:border-mint/40"
+                          className="glass inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-muted transition-colors hover:text-mint hover:border-mint/40"
                         >
-                          <ExternalLink className="h-4 w-4" />
+                          <ExternalLink className="h-3.5 w-3.5" />
                         </a>
                       </div>
                     </div>

@@ -27,7 +27,7 @@ const platformStyles = {
   github: { label: 'GitHub', color: 'bg-white/10 text-fg border-white/20' },
 }
 
-export default function ArticleHub({ authorFilter, onClearAuthorFilter, onFilterAuthor }) {
+export default function ArticleHub({ authorFilter, onClearAuthorFilter, onFilterAuthor, onOpenAuth }) {
   const [articles, setArticles] = useState(storageService.getArticles())
   const [members, setMembers] = useState(storageService.getMembers())
   const [currentUser, setCurrentUser] = useState(storageService.getCurrentUser())
@@ -96,6 +96,12 @@ export default function ArticleHub({ authorFilter, onClearAuthorFilter, onFilter
 
   // 글 작성 모달 열기
   const handleOpenCreate = () => {
+    if (!currentUser && !isAdmin) {
+      if (onOpenAuth) {
+        onOpenAuth('login')
+        return
+      }
+    }
     setEditingArticleId(null)
     setFormData({
       title: '',

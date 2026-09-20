@@ -19,6 +19,8 @@ import {
   ArrowRight,
   AlertCircle,
   X,
+  LogIn,
+  UserPlus,
 } from 'lucide-react'
 import {
   storageService,
@@ -182,8 +184,41 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
           </Reveal>
         </div>
 
-        {/* 2. My Progress Interactive HUD Card (정갈하고 세련된 글래스 디자인) */}
-        {currentUser && (
+        {/* 2. My Progress Interactive HUD Card or Guest Invitation Card */}
+        {!currentUser ? (
+          <Reveal delay={0.25} className="mt-8">
+            <div className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-surface/75 p-6 sm:p-10 backdrop-blur-xl text-center shadow-2xl">
+              <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-pink/10 blur-[120px]" />
+              <div className="pointer-events-none absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-mint/8 blur-[120px]" />
+
+              <div className="relative mx-auto max-w-lg">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-pink/40 bg-pink/15 px-3.5 py-1 font-mono text-[11px] font-semibold text-pink mb-4">
+                  <Sparkles className="h-3 w-3" />
+                  LIT 부원 전용 MSA 챌린지
+                </span>
+                <h3 className="font-display text-xl font-bold text-fg sm:text-2xl tracking-tight">
+                  부원 계정으로 로그인하고 챌린지에 참여하세요
+                </h3>
+                <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                  <button
+                    onClick={() => onOpenAuth?.('login')}
+                    className="inline-flex items-center gap-2 rounded-full bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))] px-6 py-3 text-xs font-bold text-bg shadow-lg shadow-pink/20 hover:scale-105 active:scale-95 transition-all"
+                  >
+                    <LogIn className="h-4 w-4" />
+                    부원 로그인하기
+                  </button>
+                  <button
+                    onClick={() => onOpenAuth?.('register')}
+                    className="glass inline-flex items-center gap-2 rounded-full px-5 py-3 text-xs font-semibold text-fg hover:border-white/30 hover:bg-white/10 transition-all"
+                  >
+                    <UserPlus className="h-4 w-4" />
+                    신규 부원 등록
+                  </button>
+                </div>
+              </div>
+            </div>
+          </Reveal>
+        ) : (
           <Reveal delay={0.25} className="mt-8">
             <div className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-surface/75 p-4.5 sm:p-7 md:p-9 backdrop-blur-xl shadow-2xl transition-colors hover:border-white/[0.14]">
               {/* Inner subtle ambient glow */}
@@ -336,7 +371,7 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
                         key={ml.count}
                         style={{ left: `${pos}%` }}
                         className="absolute top-0 -translate-x-1/2 h-full flex items-center pointer-events-none"
-                        title={`${ml.title} (${ml.count} Clicks)`}
+                        title={`${ml.title} (${ml.count} 조회수)`}
                       >
                         <div
                           className={`h-4 w-1 rounded-full ${
@@ -383,20 +418,15 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
                     role="button"
                     tabIndex={0}
                     title="클릭하여 내 기본 챌린지 링크 복사"
-                    className="group flex items-center gap-3 cursor-pointer select-none"
+                    className="group cursor-pointer select-none min-w-0"
                   >
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-mint/20 bg-mint/10 text-mint shadow-[0_0_12px_rgba(94,240,214,0.15)] transition-transform group-hover:scale-105">
-                      {copied ? <CheckCircle2 className="h-4 w-4 text-mint" /> : <Sparkles className="h-4 w-4" />}
+                    <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
+                      Contributor ID
+                      {copied && <span className="text-mint font-sans font-bold normal-case text-[10px]">· 기본 링크 복사됨!</span>}
                     </span>
-                    <div className="min-w-0 flex-1">
-                      <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
-                        Contributor ID
-                        {copied && <span className="text-mint font-sans font-bold normal-case text-[10px]">· 기본 링크 복사됨!</span>}
-                      </span>
-                      <span className="font-mono text-sm sm:text-base font-bold tracking-tight text-mint drop-shadow-[0_0_8px_rgba(94,240,214,0.3)] transition-colors group-hover:text-white truncate block">
-                        {myContributorId}
-                      </span>
-                    </div>
+                    <span className="font-mono text-sm sm:text-base font-bold tracking-tight text-mint drop-shadow-[0_0_8px_rgba(94,240,214,0.3)] transition-colors group-hover:text-white truncate block mt-0.5">
+                      {myContributorId}
+                    </span>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2 sm:gap-2.5 w-full lg:w-auto lg:flex lg:items-center">
@@ -431,19 +461,15 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
                       className="overflow-hidden"
                     >
                       <div className="mt-3.5 rounded-2xl border border-white/10 bg-surface/90 p-4 sm:p-5 backdrop-blur-xl shadow-xl">
-                        <div className="flex items-center justify-between gap-2 border-b border-line/60 pb-3 mb-3">
-                          <div>
-                            <h4 className="text-sm font-bold text-fg">
-                              MS Learn URL 생성기
-                            </h4>
-                            <p className="text-xs text-muted mt-0.5">
-                              Contributor ID가 연결된 URL을 생성해 줍니다.
-                            </p>
-                          </div>
-                          <span className="font-mono text-xs rounded-md bg-mint/10 border border-mint/30 px-2 py-0.5 font-bold text-mint">
-                            ID: {myContributorId}
-                          </span>
+                        <div className="border-b border-line/60 pb-3 mb-3">
+                          <h4 className="text-sm font-bold text-fg">
+                            MS Learn URL 생성기
+                          </h4>
+                          <p className="text-xs text-muted mt-0.5">
+                            Contributor ID가 연결된 URL을 생성해 줍니다.
+                          </p>
                         </div>
+
 
                         {/* Quick Presets */}
                         <div className="flex flex-wrap items-center gap-1.5 mb-2.5">

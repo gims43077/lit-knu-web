@@ -53,9 +53,8 @@ export default function Missions({ onOpenAuth }) {
   const handleToggleComplete = (missionId) => {
     let user = currentUser || storageService.getCurrentUser()
     if (!user) {
-      user = storageService.getMember('shlee') || { handle: 'shlee', name: '이승현' }
-      storageService.setCurrentUser(user.handle)
-      setCurrentUser(user)
+      if (onOpenAuth) onOpenAuth()
+      return
     }
     const userHandle = user.handle
     storageService.toggleMissionCompletion(missionId, userHandle)

@@ -214,7 +214,7 @@ export const roadmap = [
     items: [
       { date: '06.23', title: 'MSA 250 클릭 챌린지 킥오프', hot: true },
       { date: '07.15', title: 'LinkedIn 아티클 릴레이 캠페인' },
-      { date: '08.10', title: '중간 체크포인트(100 Clicks) 정산' },
+      { date: '08.10', title: '중간 체크포인트(100 조회수) 정산' },
     ],
   },
   {

@@ -120,6 +120,7 @@ export default function App() {
           authorFilter={authorFilter}
           onClearAuthorFilter={handleClearAuthorFilter}
           onFilterAuthor={handleFilterAuthor}
+          onOpenAuth={() => handleOpenAuth('login')}
         />
 
         {/* 4. 운영진 공지사항 */}
