@@ -1,6 +1,6 @@
-import { getCosmosContainer, getInMemoryStore } from '../shared/cosmosClient.js'
+const { getCosmosContainer, getInMemoryStore } = require('../shared/cosmosClient')
 
-export default async function (context, req) {
+module.exports = async function (context, req) {
   const container = await getCosmosContainer()
   const inMemory = getInMemoryStore()
 
@@ -15,6 +15,7 @@ export default async function (context, req) {
     if (container) {
       try {
         for (const m of members) {
+          if (!m || !m.handle) continue
           await container.items.upsert({
             ...m,
             id: m.handle,
@@ -68,6 +69,7 @@ export default async function (context, req) {
         const articles = resources.filter((r) => r.type === 'article')
         context.res = {
           status: 200,
+          headers: { 'Content-Type': 'application/json' },
           body: { success: true, members, articles, count: resources.length, source: 'Azure Cosmos DB' },
         }
         return
@@ -78,8 +80,8 @@ export default async function (context, req) {
 
     context.res = {
       status: 200,
+      headers: { 'Content-Type': 'application/json' },
       body: { success: true, members: inMemory.members, articles: inMemory.articles, source: 'In-Memory' },
     }
   }
 }
-

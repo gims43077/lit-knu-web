@@ -1,6 +1,6 @@
-import { getCosmosContainer, getInMemoryStore } from '../shared/cosmosClient.js'
+const { getCosmosContainer, getInMemoryStore } = require('../shared/cosmosClient')
 
-export default async function (context, req) {
+module.exports = async function (context, req) {
   const { handle, amount, isAbsolute } = req.body || {}
   if (!handle) {
     context.res = { status: 400, body: { success: false, message: 'handle is required' } }
@@ -43,4 +43,3 @@ export default async function (context, req) {
 
   context.res = { status: 200, body: { success: true, clicks: delta } }
 }
-

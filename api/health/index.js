@@ -1,8 +1,14 @@
-import { getCosmosContainer } from '../shared/cosmosClient.js'
+const { getCosmosContainer } = require('../shared/cosmosClient')
 
-export default async function (context, req) {
-  const container = await getCosmosContainer()
-  const isCosmosConnected = !!container
+module.exports = async function (context, req) {
+  let isCosmosConnected = false
+  let errorMsg = null
+  try {
+    const container = await getCosmosContainer()
+    isCosmosConnected = !!container
+  } catch (e) {
+    errorMsg = e.message
+  }
 
   context.res = {
     status: 200,
@@ -12,9 +18,9 @@ export default async function (context, req) {
       platform: 'Azure Static Web Apps + Azure Functions (Node.js)',
       service: 'LIT × MSA 250 Challenge Cloud API',
       cosmosDbConnected: isCosmosConnected,
-      database: isCosmosConnected ? 'Azure Cosmos DB (NoSQL Free Tier 1,000 RU/s & 25GB)' : 'In-Memory / Local Cache Mode',
+      error: errorMsg,
+      database: isCosmosConnected ? 'Azure Cosmos DB (litknudb / members)' : 'In-Memory / Local Cache Mode',
       timestamp: new Date().toISOString(),
     },
   }
 }
-

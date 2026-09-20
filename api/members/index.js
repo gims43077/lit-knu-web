@@ -1,6 +1,6 @@
-import { getCosmosContainer, getInMemoryStore } from '../shared/cosmosClient.js'
+const { getCosmosContainer, getInMemoryStore } = require('../shared/cosmosClient')
 
-export default async function (context, req) {
+module.exports = async function (context, req) {
   const container = await getCosmosContainer()
   const inMemory = getInMemoryStore()
 
@@ -39,7 +39,7 @@ export default async function (context, req) {
 
     const doc = {
       ...member,
-      id: member.handle, // Cosmos DB partition id
+      id: member.handle,
       updatedAt: new Date().toISOString(),
     }
 
@@ -57,7 +57,6 @@ export default async function (context, req) {
       }
     }
 
-    // Fallback store
     const idx = inMemory.members.findIndex((m) => m.handle === member.handle)
     if (idx >= 0) {
       inMemory.members[idx] = doc
@@ -104,4 +103,3 @@ export default async function (context, req) {
     return
   }
 }
-
