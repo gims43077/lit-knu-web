@@ -1,10 +1,10 @@
 import Modal from './ui/Modal.jsx'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Fragment } from 'react'
 import { motion } from 'framer-motion'
 import { Camera, Edit3, ExternalLink, Minus, Plus, Save, Sparkles, Trash2, Upload, User, ShieldCheck, X } from 'lucide-react'
 import { storageService, extractContributorId, formatContributorLink, AVATAR_PRESETS, compressImage } from '../services/storageService.js'
 
-export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
+export default function ProfileModal({ isOpen, onClose, targetMember = null, inline = false }) {
   const [currentUser, setCurrentUser] = useState(storageService.getCurrentUser())
   const [isAdmin, setIsAdmin] = useState(storageService.isAdmin())
   const [activeMember, setActiveMember] = useState(targetMember || storageService.getCurrentUser())
@@ -22,6 +22,7 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
     linkedin: '',
     blog: '',
     github: '',
+    links: [],
   })
 
   useEffect(() => {
@@ -51,6 +52,7 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
           linkedin: user.socials?.linkedin || '',
           blog: user.socials?.blog || '',
           github: user.socials?.github || '',
+          links: Array.isArray(user.links) ? user.links : [],
         })
       }
       setNewPassword('')
@@ -94,6 +96,7 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (!canEdit) return
     setIsSaving(true)
     try {
       const updatePayload = {
@@ -110,6 +113,7 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
           blog: formData.blog.trim(),
           github: formData.github.trim(),
         },
+        links: (formData.links || []).map((link) => ({ platform: link.platform || 'custom', name: String(link.name || '').trim(), url: String(link.url || '').trim() })).filter((link) => link.name && link.url),
       }
 
       if (newPassword.trim()) {
@@ -127,21 +131,24 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
     }
   }
 
+  const canViewSensitive = String(activeMember.handle).toLowerCase() === String(currentUser?.handle || '').toLowerCase()
+  const canEdit = canViewSensitive || isAdmin
+  const Wrapper = inline ? Fragment : Modal
   return (
-    <Modal>
+    <Wrapper>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        onClick={onClose}
-        className="absolute inset-0 bg-black/80 backdrop-blur-md"
+        onClick={inline ? undefined : onClose}
+        className={inline ? 'hidden' : 'absolute inset-0 bg-black/80 backdrop-blur-md'}
       />
 
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="modal-panel relative w-full max-w-lg rounded-3xl border border-line bg-surface p-7 shadow-2xl"
+        className={`${inline ? 'relative w-full' : 'modal-panel relative w-full max-w-lg'} rounded-3xl border border-line bg-surface p-7 shadow-2xl`}
       >
         <div className="flex items-center justify-between border-b border-line pb-4">
           <div className="flex items-center gap-2">
@@ -293,7 +300,7 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
             </div>
           </div>
 
-          <div>
+          {canViewSensitive && <div>
             <label className="block font-mono text-[10px] uppercase text-muted mb-1">전공 / 학번</label>
             <input
               type="text"
@@ -302,7 +309,7 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
               placeholder=""
               className="glass w-full rounded-xl px-3 py-2 text-xs text-fg focus:border-pink/50 focus:outline-none"
             />
-          </div>
+          </div>}
 
           <div>
             <label className="block font-mono text-[10px] uppercase text-muted mb-1">
@@ -338,7 +345,7 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
             </div>
           </div>
 
-          <div>
+          {canViewSensitive && <div>
             <label className="block font-mono text-[10px] uppercase text-muted mb-1">
               MS Learn Contributor ID
             </label>
@@ -349,7 +356,7 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
               placeholder="예: studentamb_482865 또는 482865"
               className="glass w-full rounded-xl px-3 py-2 text-xs text-fg focus:border-pink/50 focus:outline-none"
             />
-          </div>
+          </div>}
 
           <div>
             <label className="block font-mono text-[10px] uppercase text-muted mb-1">
@@ -389,7 +396,22 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
             />
           </div>
 
-          <div className="mt-6 flex items-center justify-between gap-2 pt-2">
+          {canViewSensitive && <div className="mt-2">
+            <label className="block font-mono text-[10px] uppercase text-muted mb-1">외부 링크</label>
+            <div className="space-y-2">
+              {(formData.links || []).map((link, index) => (
+                <div key={index} className="grid grid-cols-[7rem_7rem_1fr_auto] gap-2">
+                  <select value={link.platform || 'custom'} onChange={(e) => setFormData({ ...formData, links: formData.links.map((item, i) => i === index ? { ...item, platform: e.target.value } : item) })} className="glass rounded-xl px-2 py-2 text-xs text-fg"><option value="linkedin">LinkedIn</option><option value="github">GitHub</option><option value="tistory">Tistory</option><option value="velog">Velog</option><option value="vlog">Vlog</option><option value="website">웹사이트</option><option value="custom">직접 입력</option></select>
+                  <input value={link.name || ''} placeholder="표시 이름" onChange={(e) => setFormData({ ...formData, links: formData.links.map((item, i) => i === index ? { ...item, name: e.target.value } : item) })} className="glass rounded-xl px-2.5 py-2 text-xs text-fg" />
+                  <input value={link.url || ''} type="url" placeholder="https://..." onChange={(e) => setFormData({ ...formData, links: formData.links.map((item, i) => i === index ? { ...item, url: e.target.value } : item) })} className="glass rounded-xl px-2.5 py-2 text-xs text-fg" />
+                  <button type="button" title="링크 삭제" onClick={() => setFormData({ ...formData, links: formData.links.filter((_, i) => i !== index) })} className="glass rounded-xl px-2 text-pink">×</button>
+                </div>
+              ))}
+            </div>
+            <button type="button" onClick={() => setFormData({ ...formData, links: [...(formData.links || []), { platform: 'custom', name: '', url: '' }] })} className="mt-2 rounded-xl border border-dashed border-mint/40 px-3 py-2 text-xs text-mint">+ 링크 추가</button>
+          </div>}
+
+          {canEdit && <div className="mt-6 flex items-center justify-between gap-2 pt-2">
             {isEditingOther ? (
               <button
                 type="button"
@@ -420,10 +442,9 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
                 {isSaving ? '클라우드 저장 중...' : '변경사항 저장'}
               </button>
             </div>
-          </div>
+          </div>}
         </form>
       </motion.div>
-    </Modal>
+    </Wrapper>
   )
 }
-

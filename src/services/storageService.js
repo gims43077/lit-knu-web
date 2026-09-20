@@ -123,6 +123,15 @@ export function extractContributorId(idOrUrl) {
   return trimmed
 }
 
+export function sanitizeExternalLinks(links) {
+  if (!Array.isArray(links)) return []
+  return links.map((link) => ({ platform: String(link?.platform || 'custom').trim(), name: String(link?.name || '').trim(), url: String(link?.url || '').trim() }))
+    .filter((link) => {
+      try { const url = new URL(link.url); return ['http:', 'https:'].includes(url.protocol) && link.name }
+      catch { return false }
+    }).slice(0, 20)
+}
+
 export function validateAndGenerateContributorUrl(originalUrl, contributorId) {
   if (!originalUrl || !String(originalUrl).trim()) {
     return { isValid: false, url: '', error: null }
@@ -342,12 +351,14 @@ export async function syncFromCloud() {
         if (!json) return
         const cloudMembers = Array.isArray(json.data) ? json.data : Array.isArray(json.members) ? json.members : []
         const currentMilestones = storageService.getMilestones()
+        const localMembers = JSON.parse(localStorage.getItem(STORAGE_KEYS.MEMBERS) || '[]')
         const cleanedMembers = cloudMembers
           .filter((m) => m.handle !== 'shlee' && m.name !== '이승환')
           .map((m) => {
+            const local = localMembers.find((item) => String(item.handle).toLowerCase() === String(m.handle || m.id).toLowerCase()) || {}
             const rawClicks = Number(m.clicks)
             const clicks = isNaN(rawClicks) ? 0 : Math.max(0, rawClicks)
-            const contributorId = m.contributorId || extractContributorId(m.msLink) || 'studentamb_482865'
+            const contributorId = local.contributorId || m.contributorId || extractContributorId(local.msLink || m.msLink) || ''
             const badges = currentMilestones.filter((ml) => clicks >= ml.count).map((ml) => ml.badge)
             let avatar = m.avatar
             if (!avatar || avatar.includes('unsplash.com') || avatar.includes('dicebear')) {
@@ -356,6 +367,9 @@ export async function syncFromCloud() {
             }
             return {
               ...m,
+              contributorId: local.contributorId || m.contributorId || '',
+              msLink: local.msLink || m.msLink || '',
+              password: local.password || m.password || '',
               handle: String(m.handle || m.id).toLowerCase(),
               clicks,
               avatar,
@@ -689,6 +703,13 @@ export const storageService = {
 
     const sanitized = { ...partial }
     delete sanitized.generation
+    if (sanitized.links) sanitized.links = sanitizeExternalLinks(sanitized.links)
+    if (sanitized.socials) {
+      sanitized.socials = Object.fromEntries(Object.entries(sanitized.socials).map(([name, url]) => {
+        try { const parsed = new URL(String(url || '').trim()); return [name, ['http:', 'https:'].includes(parsed.protocol) ? parsed.toString() : ''] }
+        catch { return [name, ''] }
+      }))
+    }
     if (sanitized.contributorId) {
       sanitized.contributorId = sanitized.contributorId.trim()
       sanitized.msLink = formatContributorLink(sanitized.contributorId)
@@ -1375,4 +1396,3 @@ export const storageService = {
     notify()
   },
 }
-

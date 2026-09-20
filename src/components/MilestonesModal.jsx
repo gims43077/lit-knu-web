@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Modal from './ui/Modal.jsx'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Award, Plus, Trash2, X, Check, RotateCcw } from 'lucide-react'
 import { storageService, DEFAULT_MILESTONES } from '../services/storageService.js'
@@ -76,7 +77,7 @@ export default function MilestonesModal({ isOpen, onClose }) {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <Modal>
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -91,7 +92,7 @@ export default function MilestonesModal({ isOpen, onClose }) {
           initial={{ opacity: 0, scale: 0.95, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
-          className="modal-panel relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl border border-line bg-surface p-6 sm:p-7 shadow-2xl"
+          className="modal-panel relative w-full max-w-xl rounded-3xl border border-line bg-surface p-6 sm:p-7 shadow-2xl"
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-line pb-4">
@@ -101,10 +102,10 @@ export default function MilestonesModal({ isOpen, onClose }) {
               </div>
               <div>
                 <h3 className="font-display text-lg sm:text-xl font-bold text-fg">
-                  보상 및 마일스톤 설정 (DB 실시간 연동)
+                  보상 및 마일스톤 설정
                 </h3>
                 <p className="text-xs text-muted">
-                  조회수 달성 기준, 보상 내용, 이모티콘을 원하는 대로 유동적으로 수정할 수 있습니다.
+                  조회수 기준과 단계별 보상을 관리합니다.
                 </p>
               </div>
             </div>
@@ -224,13 +225,12 @@ export default function MilestonesModal({ isOpen, onClose }) {
                 disabled={isSaving}
                 className="w-full rounded-xl bg-[linear-gradient(90deg,var(--color-mint),var(--color-pink))] py-3 text-xs font-bold text-bg transition-opacity hover:opacity-90 shadow-lg disabled:opacity-50"
               >
-                {isSaving ? 'Azure DB 저장 중...' : 'Azure DB에 마일스톤 저장 및 즉시 반영'}
+                {isSaving ? '저장 중...' : '보상 및 마일스톤 저장'}
               </button>
             </div>
           </form>
         </motion.div>
-      </div>
+      </Modal>
     </AnimatePresence>
   )
 }
-

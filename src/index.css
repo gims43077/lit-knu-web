@@ -14,7 +14,7 @@
   --color-amber: #ffd166;
 
   --font-sans: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  --font-display: 'Syne', 'Pretendard Variable', sans-serif;
+  --font-display: 'Pretendard Variable', Pretendard, 'Syne', sans-serif;
   --font-script: 'Caveat', cursive;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 
@@ -241,4 +241,3 @@
 }
 [data-modal-root] .overflow-y-auto { overscroll-behavior: contain; }
 [data-modal-root] > :first-child { touch-action: none; }
-

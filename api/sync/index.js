@@ -116,6 +116,10 @@ module.exports = async function (context, req) {
 
   // GET: Read all data from Cosmos DB
   if (req.method === 'GET') {
+    const publicMember = (member) => {
+      const { contributorId, msLink, password, ...safe } = member
+      return safe
+    }
     if (container) {
       try {
         const { resources } = await container.items.query('SELECT * FROM c').fetchAll()
@@ -126,7 +130,7 @@ module.exports = async function (context, req) {
         context.res = {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
-          body: { success: true, members, articles, missions, faqs, count: resources.length, source: 'Azure Cosmos DB' },
+          body: { success: true, members: members.map(publicMember), articles, missions, faqs, count: resources.length, source: 'Azure Cosmos DB' },
         }
         return
       } catch (err) {
@@ -139,7 +143,7 @@ module.exports = async function (context, req) {
       headers: { 'Content-Type': 'application/json' },
       body: {
         success: true,
-        members: inMemory.members || [],
+        members: (inMemory.members || []).map(publicMember),
         articles: inMemory.articles || [],
         missions: inMemory.missions || [],
         faqs: inMemory.faqs || [],

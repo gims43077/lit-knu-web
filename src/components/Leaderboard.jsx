@@ -128,7 +128,7 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
                   className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-bold text-fg transition-all hover:bg-white/20 hover:border-white/30"
                 >
                   <Award className="h-3.5 w-3.5 text-mint" />
-                  보상 & 조회수 기준 관리
+                  보상 및 마일스톤 설정
                 </button>
                 <button
                   onClick={() => onOpenAuth?.('register')}
@@ -335,4 +335,3 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
     </section>
   )
 }
-

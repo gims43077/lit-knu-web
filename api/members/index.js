@@ -10,6 +10,10 @@ module.exports = async function (context, req) {
 
   // 1. GET: 부원 전체 목록 조회
   if (req.method === 'GET') {
+    const publicMember = (member) => {
+      const { contributorId, msLink, password, ...safe } = member
+      return safe
+    }
     if (container) {
       try {
         const { resources } = await container.items.query('SELECT * FROM c').fetchAll()
@@ -22,7 +26,7 @@ module.exports = async function (context, req) {
         context.res = {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
-          body: { success: true, count: members.length, data: members, source: 'azure-cosmos-db' },
+          body: { success: true, count: members.length, data: members.map(publicMember), source: 'azure-cosmos-db' },
         }
         return
       } catch (err) {
@@ -38,7 +42,7 @@ module.exports = async function (context, req) {
     context.res = {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
-      body: { success: true, count: fbMembers.length, data: fbMembers, source: 'in-memory' },
+      body: { success: true, count: fbMembers.length, data: fbMembers.map(publicMember), source: 'in-memory' },
     }
     return
   }
@@ -69,10 +73,11 @@ module.exports = async function (context, req) {
     if (container) {
       try {
         const { resource } = await container.items.upsert(doc)
+        const { contributorId, msLink, password, ...safe } = resource
         context.res = {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
-          body: { success: true, member: resource, source: 'azure-cosmos-db' },
+          body: { success: true, member: safe, source: 'azure-cosmos-db' },
         }
         return
       } catch (err) {
@@ -90,7 +95,7 @@ module.exports = async function (context, req) {
     context.res = {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
-      body: { success: true, member: doc, source: 'in-memory' },
+      body: { success: true, member: (() => { const { contributorId, msLink, password, ...safe } = doc; return safe })(), source: 'in-memory' },
     }
     return
   }

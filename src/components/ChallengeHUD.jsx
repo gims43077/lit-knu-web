@@ -31,8 +31,8 @@ import {
 import MagneticButton from './ui/MagneticButton.jsx'
 import { Reveal, SectionHeading } from './ui/Primitives.jsx'
 
-export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor }) {
-  const [currentUser, setCurrentUser] = useState(storageService.getCurrentUser())
+export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor, memberOverride = null }) {
+  const [currentUser, setCurrentUser] = useState(memberOverride || storageService.getCurrentUser())
   const [members, setMembers] = useState(storageService.getMembers())
   const [articles, setArticles] = useState(storageService.getArticles())
   const [milestones, setMilestones] = useState(() => storageService.getMilestones())
@@ -46,16 +46,17 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
 
   useEffect(() => {
     const unsub = storageService.subscribe(() => {
-      setCurrentUser(storageService.getCurrentUser())
+      setCurrentUser(memberOverride || storageService.getCurrentUser())
       setMembers(storageService.getMembers())
       setArticles(storageService.getArticles())
       setMilestones(storageService.getMilestones())
     })
     return unsub
-  }, [])
+  }, [memberOverride])
 
   // 동아리 전체 종합 통계 계산
   const targetClicks = milestones.length > 0 ? milestones[milestones.length - 1].count : 250
+  const canViewSensitive = String(currentUser?.handle || '').toLowerCase() === String(storageService.getCurrentUser()?.handle || '').toLowerCase()
   const totalClicks = members.reduce((acc, m) => acc + (m.clicks || 0), 0)
   const finishersCount = members.filter((m) => (m.clicks || 0) >= targetClicks).length
   const activeMembersCount = members.length
@@ -273,7 +274,7 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
                 </div>
 
                 {/* Switch / Edit Profile Buttons */}
-                <div className="flex items-center gap-2 self-start lg:self-center">
+                {canViewSensitive && <div className="flex items-center gap-2 self-start lg:self-center">
                   <button
                     onClick={onOpenProfile}
                     className="glass inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs text-muted transition-colors hover:border-white/30 hover:text-fg"
@@ -288,7 +289,7 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
                     <UserCheck className="h-3.5 w-3.5" />
                     부원 전환
                   </button>
-                </div>
+                </div>}
               </div>
 
               {/* Progress Bar & Quick Increments */}
@@ -326,7 +327,7 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
                   </div>
 
                   {/* Quick Increment buttons */}
-                  <div className="flex flex-wrap items-center gap-1.5 shrink-0">
+                  {canViewSensitive && <div className="flex flex-wrap items-center gap-1.5 shrink-0">
                     {[1, 5, 10].map((num) => (
                       <button
                         key={num}
@@ -343,7 +344,7 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
                     >
                       직접 입력
                     </button>
-                  </div>
+                  </div>}
                 </div>
 
                 {/* Animated Progress Bar */}
@@ -404,7 +405,7 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
                 </div>
 
                 {/* Contributor ID & My Articles Action Bar (글로우 제거 및 깔끔한 다크 글래스 박스) */}
-                <div className="mt-6 flex flex-col gap-3.5 lg:flex-row lg:items-center lg:justify-between rounded-2xl bg-surface/60 border border-line p-3.5 sm:p-4 md:px-5 md:py-4 transition-all hover:border-white/20">
+                {canViewSensitive && <div className="mt-6 flex flex-col gap-3.5 lg:flex-row lg:items-center lg:justify-between rounded-2xl bg-surface/60 border border-line p-3.5 sm:p-4 md:px-5 md:py-4 transition-all hover:border-white/20">
                   <div
                     onClick={handleCopyLink}
                     role="button"
@@ -440,7 +441,7 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
                       <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 text-muted group-hover:text-fg transition-transform duration-300 group-hover:translate-x-0.5" />
                     </button>
                   </div>
-                </div>
+                </div>}
 
                 {/* MS Learn Contributor URL Generator Tool */}
                 <AnimatePresence>
@@ -569,4 +570,3 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
     </section>
   )
 }
-
