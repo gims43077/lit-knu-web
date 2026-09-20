@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 import { motion, useMotionValue, useScroll, useSpring, useTransform } from 'framer-motion'
-import { ArrowDown, ArrowUpRight, Flame, Sparkles, Trophy, BookOpen } from 'lucide-react'
+import { ArrowDown, Flame, Sparkles, Trophy, BookOpen } from 'lucide-react'
 import MagneticButton from './ui/MagneticButton.jsx'
 import { gradientSlice } from './ui/Primitives.jsx'
 import { links } from '../data/site.js'
@@ -106,16 +106,14 @@ export default function Hero({ ready }) {
         <motion.a
           href="#dashboard"
           data-cursor="hover"
-          className="glass group mb-8 inline-flex items-center gap-2 rounded-full py-1.5 pl-1.5 pr-4 text-xs text-muted transition-colors hover:text-fg"
+          className="glass group mb-8 inline-flex items-center rounded-full p-1 text-xs text-muted transition-all hover:scale-105 hover:border-white/30"
           initial={{ opacity: 0, y: 20 }}
           animate={ready ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, ease, delay: 0.1 }}
         >
-          <span className="inline-flex items-center gap-1 rounded-full bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))] px-2.5 py-1 text-[11px] font-semibold text-bg">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))] px-3.5 py-1 text-[11px] font-semibold text-bg shadow-[0_0_12px_rgba(255,111,177,0.25)]">
             <Sparkles className="h-3 w-3" /> LIT MSA 챌린지
           </span>
-          <span>250 Clicks Challenge</span>
-          <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
         </motion.a>
 
         <h1 className="font-display text-[14vw] font-extrabold leading-[0.92] tracking-[-0.04em] sm:text-[10vw] lg:text-[8.5rem]">
@@ -130,7 +128,7 @@ export default function Hero({ ready }) {
           animate={ready ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.9, ease, delay: 0.95 }}
         >
-          경북대학교 IT 기술 발표 동아리, <span className="font-semibold text-fg">LIT</span>
+          경북대학교 IT 기술 발표 동아리, LIT
         </motion.p>
 
         <motion.div

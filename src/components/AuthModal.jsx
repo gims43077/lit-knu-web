@@ -313,7 +313,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
               <div className="flex items-center gap-3">
                 <div className="relative group shrink-0">
                   <img
-                    src={newMember.avatar || (newMember.handle ? `https://api.dicebear.com/7.x/bottts/svg?seed=${newMember.handle}` : AVATAR_PRESETS[0])}
+                    src={newMember.avatar || AVATAR_PRESETS[0]}
                     alt="avatar-preview"
                     className="h-12 w-12 rounded-xl object-cover border-2 border-mint/50 shadow-md"
                   />
@@ -354,14 +354,19 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
               </div>
 
               {/* Quick avatar presets */}
-              <div className="mt-2 flex items-center gap-1.5 pt-1.5 border-t border-line/40">
-                <span className="font-mono text-[9px] text-muted mr-1">추천 프리셋:</span>
+              <div className="mt-2 flex items-center gap-1.5 pt-1.5 border-t border-line/40 flex-wrap">
+                <span className="font-mono text-[9px] text-muted mr-1">추천 프리셋 (단색):</span>
                 {AVATAR_PRESETS.map((preset, idx) => (
                   <button
                     key={idx}
                     type="button"
                     onClick={() => setNewMember({ ...newMember, avatar: preset })}
-                    className="h-5 w-5 rounded-md overflow-hidden border border-white/20 hover:border-mint hover:scale-110 transition-all shrink-0"
+                    title={`단색 컬러 프리셋 ${idx + 1}`}
+                    className={`h-5 w-5 rounded-md overflow-hidden border transition-all shrink-0 ${
+                      newMember.avatar === preset
+                        ? 'border-white scale-110 shadow-[0_0_8px_rgba(255,255,255,0.5)] ring-2 ring-white/50'
+                        : 'border-white/20 hover:border-mint hover:scale-110'
+                    }`}
                   >
                     <img src={preset} alt={`preset-${idx}`} className="h-full w-full object-cover" />
                   </button>
@@ -502,7 +507,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
                 type="text"
                 value={newMember.bio}
                 onChange={(e) => setNewMember({ ...newMember, bio: e.target.value })}
-                placeholder="예: 250 클릭 완주를 향해 함께 달립니다!"
+                placeholder="예: 250 클릭 달성을 향해 함께 달립니다!"
                 className="glass w-full rounded-xl px-3 py-2 text-xs text-fg focus:border-pink/50 focus:outline-none"
               />
             </div>

@@ -16,7 +16,7 @@ import {
   Trash2,
   ShieldCheck,
 } from 'lucide-react'
-import { storageService } from '../services/storageService.js'
+import { storageService, generateContributorUrl, AVATAR_PRESETS } from '../services/storageService.js'
 import { Reveal, SectionHeading } from './ui/Primitives.jsx'
 import MagneticButton from './ui/MagneticButton.jsx'
 
@@ -42,6 +42,7 @@ export default function ArticleHub({ authorFilter, onClearAuthorFilter, onFilter
     title: '',
     excerpt: '',
     url: '',
+    learnUrl: '',
     platform: 'linkedin',
     tags: '',
     authorHandle: currentUser?.handle || '',
@@ -100,6 +101,7 @@ export default function ArticleHub({ authorFilter, onClearAuthorFilter, onFilter
       title: '',
       excerpt: '',
       url: '',
+      learnUrl: '',
       platform: 'linkedin',
       tags: '',
       authorHandle: currentUser?.handle || members[0]?.handle || '',
@@ -114,6 +116,7 @@ export default function ArticleHub({ authorFilter, onClearAuthorFilter, onFilter
       title: art.title || '',
       excerpt: art.excerpt || '',
       url: art.url || '',
+      learnUrl: art.learnUrl || '',
       platform: art.platform || 'linkedin',
       tags: Array.isArray(art.tags) ? art.tags.join(', ') : (art.tags || ''),
       authorHandle: art.authorHandle || currentUser?.handle || '',
@@ -133,11 +136,21 @@ export default function ArticleHub({ authorFilter, onClearAuthorFilter, onFilter
     e.preventDefault()
     if (!formData.title || !formData.url) return
 
+    const authorMem = members.find((m) => m.handle === (formData.authorHandle || currentUser?.handle))
+    let finalLearnUrl = formData.learnUrl?.trim() || ''
+    if (finalLearnUrl && authorMem) {
+      const generated = generateContributorUrl(finalLearnUrl, authorMem.contributorId || authorMem.handle)
+      if (generated) finalLearnUrl = generated
+    } else if (!finalLearnUrl) {
+      finalLearnUrl = formData.url.trim()
+    }
+
     if (editingArticleId) {
       storageService.updateArticle(editingArticleId, {
         title: formData.title.trim(),
         excerpt: formData.excerpt.trim(),
         url: formData.url.trim(),
+        learnUrl: finalLearnUrl,
         platform: formData.platform,
         tags: formData.tags,
         authorHandle: formData.authorHandle,
@@ -147,6 +160,7 @@ export default function ArticleHub({ authorFilter, onClearAuthorFilter, onFilter
         title: formData.title.trim(),
         excerpt: formData.excerpt.trim(),
         url: formData.url.trim(),
+        learnUrl: finalLearnUrl,
         platform: formData.platform,
         tags: formData.tags,
         authorHandle: formData.authorHandle || currentUser?.handle || 'LIT',
@@ -157,6 +171,7 @@ export default function ArticleHub({ authorFilter, onClearAuthorFilter, onFilter
       title: '',
       excerpt: '',
       url: '',
+      learnUrl: '',
       platform: 'linkedin',
       tags: '',
       authorHandle: currentUser?.handle || '',
@@ -166,7 +181,7 @@ export default function ArticleHub({ authorFilter, onClearAuthorFilter, onFilter
   }
 
   return (
-    <section id="articles" className="relative scroll-mt-24 px-6 py-24 sm:py-32">
+    <section id="articles" className="relative scroll-mt-24 px-4 sm:px-6 py-24 sm:py-32 overflow-hidden">
       {/* Ambient background */}
       <div className="pointer-events-none absolute left-10 top-1/4 -z-10 h-[400px] w-[400px] rounded-full bg-pink/10 blur-[140px]" />
 
@@ -177,7 +192,7 @@ export default function ArticleHub({ authorFilter, onClearAuthorFilter, onFilter
               eyebrow="Feed"
               title="LIT"
               accent="피드"
-              desc="블로그와 LinkedIn에 작성한 글을 공유하고 서로를 응원합니다."
+              desc="블로그와 LinkedIn에 작성한 글을 공유합니다."
             />
             {isAdmin && (
               <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-pink/40 bg-pink/15 px-3 py-1 font-mono text-[11px] text-pink font-semibold">
@@ -203,7 +218,7 @@ export default function ArticleHub({ authorFilter, onClearAuthorFilter, onFilter
             <div className="flex items-center justify-between rounded-2xl border border-mint/40 bg-mint/10 p-4 sm:p-5">
               <div className="flex items-center gap-3">
                 <img
-                  src={authorMember?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'}
+                  src={authorMember?.avatar || AVATAR_PRESETS[0]}
                   alt={authorMember?.name || authorFilter}
                   className="h-10 w-10 rounded-xl object-cover border border-mint/40"
                 />
@@ -219,17 +234,6 @@ export default function ArticleHub({ authorFilter, onClearAuthorFilter, onFilter
               </div>
 
               <div className="flex items-center gap-2">
-                {authorMember?.msLink && (
-                  <a
-                    href={authorMember.msLink}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="hidden sm:inline-flex items-center gap-1.5 rounded-xl bg-mint px-3 py-1.5 text-xs font-bold text-bg"
-                  >
-                    250 클릭 지원하기
-                    <ArrowUpRight className="h-3.5 w-3.5" />
-                  </a>
-                )}
                 <button
                   onClick={onClearAuthorFilter}
                   className="glass flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs text-muted hover:text-fg hover:border-white/30"
@@ -420,19 +424,17 @@ export default function ArticleHub({ authorFilter, onClearAuthorFilter, onFilter
                       </button>
                     </div>
 
-                    {/* 250 Click Support Button for this author */}
-                    {author?.msLink && (
-                      <a
-                        href={author.msLink}
-                        target="_blank"
-                        rel="noreferrer"
-                        title={`${author.name}님의 250 클릭을 지원하기 위해 MS Learn 링크 열기`}
-                        className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl border border-line bg-white/[0.02] py-2 text-[11px] text-muted transition-all hover:bg-white/[0.07] hover:text-fg hover:border-mint/40"
-                      >
-                        <span>{author.name}님의 MSA 링크 클릭 지원</span>
-                        <ExternalLink className="h-3 w-3 text-mint" />
-                      </a>
-                    )}
+                    {/* Link Button: MS Learn 링크 또는 미입력 시 원문 링크 */}
+                    <a
+                      href={art.learnUrl || art.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      title={`${author?.name || '작성자'}님의 링크 열기`}
+                      className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl border border-line bg-white/[0.02] py-2 text-xs text-muted transition-all hover:bg-white/[0.07] hover:text-fg hover:border-mint/40"
+                    >
+                      <span>{author?.name || '작성자'}님의 링크 클릭</span>
+                      <ExternalLink className="h-3.5 w-3.5 text-mint" />
+                    </a>
                   </div>
                 </motion.article>
               )
@@ -549,6 +551,22 @@ export default function ArticleHub({ authorFilter, onClearAuthorFilter, onFilter
                     placeholder="https://linkedin.com/posts/... 또는 https://velog.io/..."
                     className="glass w-full rounded-xl px-3.5 py-2.5 text-xs text-fg focus:border-pink/50 focus:outline-none"
                   />
+                </div>
+
+                <div>
+                  <label className="block font-mono text-[11px] uppercase tracking-wider text-muted mb-1.5">
+                    첨부할 MS Learn 링크
+                  </label>
+                  <input
+                    type="url"
+                    value={formData.learnUrl || ''}
+                    onChange={(e) => setFormData({ ...formData, learnUrl: e.target.value })}
+                    placeholder="https://learn.microsoft.com/... (글과 관련된 MS Learn 모듈 링크)"
+                    className="glass w-full rounded-xl px-3.5 py-2.5 text-xs text-fg focus:border-pink/50 focus:outline-none placeholder:text-muted/50"
+                  />
+                  <p className="text-[11px] text-muted mt-1">
+                    💡 독자가 카드 하단의 &apos;~님의 링크 클릭&apos; 버튼을 누르면 이 링크로 이동합니다. (미입력 시 원문 링크로 이동)
+                  </p>
                 </div>
 
                 <div>

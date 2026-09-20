@@ -1,11 +1,14 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Award,
+  Check,
   CheckCircle2,
   Copy,
   ExternalLink,
   Flame,
+  Globe,
+  Link2,
   Plus,
   Share2,
   Sparkles,
@@ -14,8 +17,16 @@ import {
   UserCheck,
   Edit3,
   ArrowRight,
+  AlertCircle,
+  X,
 } from 'lucide-react'
-import { storageService, MILESTONES, extractContributorId } from '../services/storageService.js'
+import {
+  storageService,
+  MILESTONES,
+  extractContributorId,
+  generateContributorUrl,
+  validateAndGenerateContributorUrl,
+} from '../services/storageService.js'
 import MagneticButton from './ui/MagneticButton.jsx'
 import { Reveal, SectionHeading } from './ui/Primitives.jsx'
 
@@ -25,6 +36,11 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
   const [articles, setArticles] = useState(storageService.getArticles())
   const [copied, setCopied] = useState(false)
   const [justAdded, setJustAdded] = useState(null)
+
+  // MS Learn Contributor URL 생성기 상태
+  const [isUrlGenOpen, setIsUrlGenOpen] = useState(false)
+  const [inputLearnUrl, setInputLearnUrl] = useState('')
+  const [copiedGenUrl, setCopiedGenUrl] = useState(false)
 
   useEffect(() => {
     const unsub = storageService.subscribe(() => {
@@ -64,8 +80,30 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
     setTimeout(() => setCopied(false), 2000)
   }
 
+  // MS Learn Contributor URL 생성기
+  const myContributorId = currentUser?.contributorId || extractContributorId(currentUser?.msLink) || 'studentamb_482865'
+  const urlValidation = useMemo(
+    () => validateAndGenerateContributorUrl(inputLearnUrl, myContributorId),
+    [inputLearnUrl, myContributorId]
+  )
+  const generatedUrl = urlValidation.isValid ? urlValidation.url : ''
+  const urlError = urlValidation.error
+
+  const handleCopyGenUrl = () => {
+    if (!generatedUrl) return
+    navigator.clipboard.writeText(generatedUrl)
+    setCopiedGenUrl(true)
+    setTimeout(() => setCopiedGenUrl(false), 2000)
+  }
+
+  const samplePresets = [
+    { label: 'Azure AI 기초', url: 'https://learn.microsoft.com/training/modules/get-started-with-ai-in-azure/' },
+    { label: 'GitHub Copilot', url: 'https://learn.microsoft.com/training/modules/get-started-github-copilot/?practice-assessment-type=certification' },
+    { label: 'Fabric 기초', url: 'https://learn.microsoft.com/training/paths/get-started-fabric/' },
+  ]
+
   return (
-    <section id="dashboard" className="relative scroll-mt-24 px-6 py-20 sm:py-28">
+    <section id="dashboard" className="relative scroll-mt-24 px-4 sm:px-6 py-20 sm:py-28 overflow-hidden">
       {/* Background glow */}
       <div className="pointer-events-none absolute left-1/2 top-10 -z-10 h-[500px] w-[90vw] -translate-x-1/2 rounded-full bg-gradient-to-b from-pink/15 via-violet/10 to-mint/10 blur-[140px]" />
 
@@ -77,13 +115,13 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
           desc="동아리 전체 현황과 나의 챌린지 진행 상태를 실시간으로 확인하세요."
         />
 
-        {/* 1. 동아리 전체 요약 통계 그리드 (동일한 카드 크기 및 간결한 문구) */}
+        {/* 1. 동아리 전체 요약 통계 그리드 */}
         <div className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4 items-stretch">
           <Reveal delay={0.05} className="h-full">
             <div className="glass group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl p-4 sm:p-5 transition-all duration-300 hover:border-pink/40 hover:bg-white/[0.06]">
               <div>
                 <div className="flex items-center justify-between text-muted">
-                  <span className="font-mono text-[11px] sm:text-xs uppercase tracking-wider">Clicks</span>
+                  <span className="text-xs font-medium text-fg/80">전체 클릭</span>
                   <Flame className="h-4 w-4 text-pink" />
                 </div>
                 <div className="mt-2.5 font-sans text-2xl sm:text-3xl font-extrabold tracking-tight text-fg">
@@ -91,7 +129,6 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
                   <span className="ml-1 text-xs font-normal text-muted">회</span>
                 </div>
               </div>
-              <p className="mt-3 text-xs text-muted truncate">전체 누적 클릭</p>
               <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-pink to-violet opacity-0 transition-opacity group-hover:opacity-100" />
             </div>
           </Reveal>
@@ -100,7 +137,7 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
             <div className="glass group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl p-4 sm:p-5 transition-all duration-300 hover:border-amber/40 hover:bg-white/[0.06]">
               <div>
                 <div className="flex items-center justify-between text-muted">
-                  <span className="font-mono text-[11px] sm:text-xs uppercase tracking-wider">Finishers</span>
+                  <span className="text-xs font-medium text-fg/80">MSA 달성 부원</span>
                   <Trophy className="h-4 w-4 text-amber" />
                 </div>
                 <div className="mt-2.5 font-sans text-2xl sm:text-3xl font-extrabold tracking-tight text-fg">
@@ -108,7 +145,6 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
                   <span className="ml-1 text-xs font-normal text-muted">명</span>
                 </div>
               </div>
-              <p className="mt-3 text-xs text-muted truncate">250 완주 부원</p>
               <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-amber to-mint opacity-0 transition-opacity group-hover:opacity-100" />
             </div>
           </Reveal>
@@ -117,7 +153,7 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
             <div className="glass group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl p-4 sm:p-5 transition-all duration-300 hover:border-violet/40 hover:bg-white/[0.06]">
               <div>
                 <div className="flex items-center justify-between text-muted">
-                  <span className="font-mono text-[11px] sm:text-xs uppercase tracking-wider">Members</span>
+                  <span className="text-xs font-medium text-fg/80">참여 부원</span>
                   <UserCheck className="h-4 w-4 text-violet" />
                 </div>
                 <div className="mt-2.5 font-sans text-2xl sm:text-3xl font-extrabold tracking-tight text-fg">
@@ -125,7 +161,6 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
                   <span className="ml-1 text-xs font-normal text-muted">명</span>
                 </div>
               </div>
-              <p className="mt-3 text-xs text-muted truncate">참여 부원</p>
               <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-violet to-mint opacity-0 transition-opacity group-hover:opacity-100" />
             </div>
           </Reveal>
@@ -134,7 +169,7 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
             <div className="glass group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl p-4 sm:p-5 transition-all duration-300 hover:border-mint/40 hover:bg-white/[0.06]">
               <div>
                 <div className="flex items-center justify-between text-muted">
-                  <span className="font-mono text-[11px] sm:text-xs uppercase tracking-wider">Feed</span>
+                  <span className="text-xs font-medium text-fg/80">공유된 글</span>
                   <Share2 className="h-4 w-4 text-mint" />
                 </div>
                 <div className="mt-2.5 font-sans text-2xl sm:text-3xl font-extrabold tracking-tight text-fg">
@@ -142,19 +177,18 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
                   <span className="ml-1 text-xs font-normal text-muted">편</span>
                 </div>
               </div>
-              <p className="mt-3 text-xs text-muted truncate">공유된 글</p>
               <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-mint to-pink opacity-0 transition-opacity group-hover:opacity-100" />
             </div>
           </Reveal>
         </div>
 
-        {/* 2. My Progress Interactive HUD Card */}
+        {/* 2. My Progress Interactive HUD Card (정갈하고 세련된 글래스 디자인) */}
         {currentUser && (
           <Reveal delay={0.25} className="mt-8">
-            <div className="gradient-border gradient-border-spin relative overflow-hidden rounded-3xl bg-surface/90 p-6 sm:p-9 backdrop-blur-xl">
-              {/* Inner ambient glow */}
-              <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-pink/20 blur-[100px]" />
-              <div className="pointer-events-none absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-mint/15 blur-[100px]" />
+            <div className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-surface/75 p-4.5 sm:p-7 md:p-9 backdrop-blur-xl shadow-2xl transition-colors hover:border-white/[0.14]">
+              {/* Inner subtle ambient glow */}
+              <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-pink/10 blur-[120px]" />
+              <div className="pointer-events-none absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-mint/8 blur-[120px]" />
 
               <div className="relative flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
                 {/* User Info & Status */}
@@ -179,7 +213,7 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
                       {currentUser.certifications && (
                         <span className="inline-flex items-center gap-1 rounded-md border border-cyan/40 bg-cyan/10 px-2 py-0.5 font-mono text-[10px] font-semibold text-cyan">
                           <Award className="h-3 w-3 text-cyan" />
-                          MS 공인: {currentUser.certifications}
+                          {currentUser.certifications}
                         </span>
                       )}
                     </div>
@@ -249,7 +283,7 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
                       </div>
 
                       <span className="font-mono text-base sm:text-lg text-muted whitespace-nowrap shrink-0">
-                        / 250 clicks
+                        / 250 조회수
                       </span>
 
                       <span className="rounded-full bg-mint/15 px-2.5 py-0.5 font-mono text-xs font-semibold text-mint whitespace-nowrap shrink-0">
@@ -257,21 +291,15 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
                       </span>
                     </div>
 
-                    <p className="mt-1 text-xs text-muted sm:text-sm">
-                      {isFinished ? (
+                    {isFinished && (
+                      <p className="mt-1 text-xs text-muted sm:text-sm">
                         <span className="text-mint font-semibold">🎉 축하합니다! MSA 공식 앰버서더 자격을 충족했습니다!</span>
-                      ) : (
-                        <>
-                          다음 목표 <strong className="text-fg">{nextMilestone.count} 달성</strong>까지{' '}
-                          <span className="text-gradient font-bold">{clicksLeft} 클릭</span> 남았습니다! ({nextMilestone.reward})
-                        </>
-                      )}
-                    </p>
+                      </p>
+                    )}
                   </div>
 
                   {/* Quick Increment buttons */}
-                  <div className="flex items-center gap-1.5 shrink-0 whitespace-nowrap">
-                    <span className="font-mono text-[11px] uppercase tracking-wider text-muted mr-1 hidden xs:inline sm:inline">Quick Add:</span>
+                  <div className="flex flex-wrap items-center gap-1.5 shrink-0">
                     {[1, 5, 10].map((num) => (
                       <button
                         key={num}
@@ -348,37 +376,173 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
                   })}
                 </div>
 
-                {/* Contributor ID & My Articles Action Bar (초간결 & 세련된 디자인) */}
-                <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-2xl bg-white/[0.03] border border-white/10 p-3.5 sm:px-5 sm:py-3.5 backdrop-blur-md transition-all hover:border-white/20">
+                {/* Contributor ID & My Articles Action Bar (초간결 & 세련된 반응형 디자인) */}
+                <div className="mt-6 flex flex-col gap-3.5 lg:flex-row lg:items-center lg:justify-between rounded-2xl bg-white/[0.03] border border-white/10 p-3.5 sm:p-4 md:px-5 md:py-4 backdrop-blur-md transition-all hover:border-white/20">
                   <div
                     onClick={handleCopyLink}
                     role="button"
                     tabIndex={0}
-                    title="클릭하여 내 챌린지 링크 복사"
+                    title="클릭하여 내 기본 챌린지 링크 복사"
                     className="group flex items-center gap-3 cursor-pointer select-none"
                   >
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-mint/20 bg-mint/10 text-mint shadow-[0_0_12px_rgba(94,240,214,0.15)] transition-transform group-hover:scale-105">
                       {copied ? <CheckCircle2 className="h-4 w-4 text-mint" /> : <Sparkles className="h-4 w-4" />}
                     </span>
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-muted">
                         Contributor ID
-                        {copied && <span className="text-mint font-sans font-bold normal-case text-[10px]">· 링크 복사됨!</span>}
+                        {copied && <span className="text-mint font-sans font-bold normal-case text-[10px]">· 기본 링크 복사됨!</span>}
                       </span>
-                      <span className="font-mono text-sm sm:text-base font-bold tracking-tight text-mint drop-shadow-[0_0_8px_rgba(94,240,214,0.3)] transition-colors group-hover:text-white">
-                        {currentUser.contributorId || extractContributorId(currentUser.msLink)}
+                      <span className="font-mono text-sm sm:text-base font-bold tracking-tight text-mint drop-shadow-[0_0_8px_rgba(94,240,214,0.3)] transition-colors group-hover:text-white truncate block">
+                        {myContributorId}
                       </span>
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => onFilterAuthor(currentUser.handle)}
-                    className="group inline-flex items-center justify-center gap-2 rounded-xl bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))] px-5 py-2.5 text-xs sm:text-sm font-bold text-bg shadow-[0_0_18px_rgba(255,111,177,0.35)] transition-all duration-300 hover:shadow-[0_0_24px_rgba(94,240,214,0.5)] hover:scale-[1.02] active:scale-[0.98]"
-                  >
-                    <span>내가 쓴 글 보기</span>
-                    <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
-                  </button>
+                  <div className="grid grid-cols-2 gap-2 sm:gap-2.5 w-full lg:w-auto lg:flex lg:items-center">
+                    <button
+                      type="button"
+                      onClick={() => setIsUrlGenOpen((v) => !v)}
+                      className="group inline-flex h-11 w-full lg:w-36 xl:w-40 items-center justify-center gap-1.5 sm:gap-2 rounded-xl bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))] px-2 sm:px-3 text-xs sm:text-sm font-bold text-bg shadow-[0_0_18px_rgba(255,111,177,0.35)] transition-all duration-300 hover:shadow-[0_0_24px_rgba(94,240,214,0.5)] hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                      <Link2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                      <span className="truncate">URL 생성기</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => onFilterAuthor(currentUser.handle)}
+                      className="group inline-flex h-11 w-full lg:w-36 xl:w-40 items-center justify-center gap-1.5 sm:gap-2 rounded-xl bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))] px-2 sm:px-3 text-xs sm:text-sm font-bold text-bg shadow-[0_0_18px_rgba(255,111,177,0.35)] transition-all duration-300 hover:shadow-[0_0_24px_rgba(94,240,214,0.5)] hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                      <span className="truncate">내가 쓴 글 보기</span>
+                      <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 transition-transform duration-300 group-hover:translate-x-0.5" />
+                    </button>
+                  </div>
                 </div>
+
+                {/* MS Learn Contributor URL Generator Tool */}
+                <AnimatePresence>
+                  {isUrlGenOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                      className="overflow-hidden"
+                    >
+                      <div className="mt-3.5 rounded-2xl border border-white/10 bg-surface/90 p-4 sm:p-5 backdrop-blur-xl shadow-xl">
+                        <div className="flex items-center justify-between gap-2 border-b border-line/60 pb-3 mb-3">
+                          <div>
+                            <h4 className="text-sm font-bold text-fg">
+                              MS Learn URL 생성기
+                            </h4>
+                            <p className="text-xs text-muted mt-0.5">
+                              Contributor ID가 연결된 URL을 생성해 줍니다.
+                            </p>
+                          </div>
+                          <span className="font-mono text-xs rounded-md bg-mint/10 border border-mint/30 px-2 py-0.5 font-bold text-mint">
+                            ID: {myContributorId}
+                          </span>
+                        </div>
+
+                        {/* Quick Presets */}
+                        <div className="flex flex-wrap items-center gap-1.5 mb-2.5">
+                          <span className="text-xs text-muted font-mono mr-1">예시:</span>
+                          {samplePresets.map((preset) => (
+                            <button
+                              key={preset.label}
+                              type="button"
+                              onClick={() => setInputLearnUrl(preset.url)}
+                              className="rounded-lg border border-line bg-white/[0.03] px-2.5 py-1 text-xs text-muted hover:text-fg hover:border-mint/40 hover:bg-white/[0.06] transition-colors"
+                            >
+                              {preset.label}
+                            </button>
+                          ))}
+                        </div>
+
+                        {/* Input Box */}
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={inputLearnUrl}
+                            onChange={(e) => setInputLearnUrl(e.target.value)}
+                            placeholder="MS Learn 링크 붙여넣기 (예: https://learn.microsoft.com/...)"
+                            className="glass w-full rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-fg placeholder:text-muted/60 focus:border-mint/50 focus:outline-none"
+                          />
+                          {inputLearnUrl && (
+                            <button
+                              type="button"
+                              onClick={() => setInputLearnUrl('')}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-fg p-1"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Error Notice */}
+                        {inputLearnUrl.trim() && urlError && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 4 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="mt-3 flex items-start gap-2.5 rounded-xl border border-pink/30 bg-pink/10 p-3 text-xs text-pink shadow-md"
+                          >
+                            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-pink" />
+                            <div className="leading-relaxed">
+                              <p className="font-semibold">{urlError}</p>
+                              <p className="text-[11px] text-pink/80 mt-0.5">
+                                가이드 지침에 부합하는 적격 Microsoft 콘텐츠 링크를 입력해 주세요.
+                              </p>
+                            </div>
+                          </motion.div>
+                        )}
+
+                        {/* Output Box */}
+                        {generatedUrl && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 4 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="mt-3 rounded-xl border border-mint/30 bg-black/40 p-3"
+                          >
+                            <div className="break-all font-mono text-xs text-fg/95 bg-surface/90 border border-line rounded-lg p-2.5 select-all leading-relaxed">
+                              {generatedUrl}
+                            </div>
+
+                            <div className="mt-2.5 flex items-center justify-end gap-2">
+                              <a
+                                href={generatedUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="glass inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs text-muted hover:text-fg hover:border-white/30 transition-colors"
+                              >
+                                <ExternalLink className="h-3 w-3" />
+                                <span>열기</span>
+                              </a>
+
+                              <button
+                                type="button"
+                                onClick={handleCopyGenUrl}
+                                className="inline-flex items-center gap-1.5 rounded-lg bg-mint px-3.5 py-1.5 text-xs font-bold text-bg hover:bg-mint/90 transition-all shadow-md shadow-mint/15 active:scale-95"
+                              >
+                                {copiedGenUrl ? (
+                                  <>
+                                    <Check className="h-3.5 w-3.5" />
+                                    <span>복사 완료!</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Copy className="h-3.5 w-3.5" />
+                                    <span>링크 복사</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                          </motion.div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
           </Reveal>

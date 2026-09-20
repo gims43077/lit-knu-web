@@ -57,7 +57,7 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
   })
 
   return (
-    <section id="leaderboard" className="relative scroll-mt-24 px-6 py-24 sm:py-32">
+    <section id="leaderboard" className="relative scroll-mt-24 px-4 sm:px-6 py-24 sm:py-32 overflow-hidden">
       {/* Glow */}
       <div className="pointer-events-none absolute right-1/4 top-1/3 -z-10 h-[500px] w-[500px] rounded-full bg-violet/10 blur-[150px]" />
 
@@ -261,7 +261,7 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
                           <span className="font-mono text-xs text-muted">@{m.handle}</span>
                           {isFinished && (
                             <span className="rounded-full border border-mint/40 bg-mint/15 px-2 py-0.5 font-mono text-[10px] font-bold text-mint whitespace-nowrap">
-                              👑 250 완주!
+                              👑 250 달성!
                             </span>
                           )}
                         </div>

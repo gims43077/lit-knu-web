@@ -14,3 +14,7 @@ cardnews/
 .env
 .env.*
 !.env.example
+
+# Editor directories and temp files
+.vscode/
+~$*

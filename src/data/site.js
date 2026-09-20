@@ -13,11 +13,11 @@ export const links = {
 }
 
 export const nav = [
-  { label: 'Overview', href: '#top' },
-  { label: 'Dashboard', href: '#dashboard' },
-  { label: 'Leaderboard', href: '#leaderboard' },
-  { label: 'Feed', href: '#articles' },
-  { label: 'Notice', href: '#missions' },
+  { label: '소개', href: '#top' },
+  { label: '대시보드', href: '#dashboard' },
+  { label: '리더보드', href: '#leaderboard' },
+  { label: '피드', href: '#articles' },
+  { label: '공지사항', href: '#missions' },
   { label: 'FAQ', href: '#faq' },
 ]
 
@@ -35,7 +35,7 @@ export const marquee = [
   '250 CLICKS CHALLENGE',
   '배워서 나누는 기술 이야기',
   'MICROSOFT LEARN',
-  '함께 달리는 250 완주',
+  '함께 달리는 250 달성',
   'LIT × MSA',
 ]
 
@@ -69,7 +69,7 @@ export const activities = [
   {
     title: 'LinkedIn 아티클 릴레이',
     tag: 'Community',
-    desc: '배운 기술을 LinkedIn과 블로그에 글로 정리하고 서로의 글을 응원하며 영향력을 넓힙니다.',
+    desc: '배운 기술을 LinkedIn과 블로그에 글로 정리하고 영향력을 넓힙니다.',
     icon: 'BookOpen',
     span: '',
     accent: 'mint',
@@ -176,16 +176,16 @@ export const process = [
   {
     step: '09',
     title: '250 클릭 MSA 달성!',
-    desc: '최종 250 클릭 완주! Microsoft Learn 공식 앰버서더(MSA) 자격을 정식으로 획득합니다.',
+    desc: '최종 250 클릭 달성! Microsoft Learn 공식 앰버서더(MSA) 자격을 정식으로 획득합니다.',
     mode: '👑 250 MSA',
   },
 ]
 
 export const stats = [
-  { value: 250, suffix: '명', label: '1인당 목표 클릭수', sub: 'MSA 챌린지 공식 완주' },
+  { value: 250, suffix: '명', label: '1인당 목표 클릭수', sub: 'MSA 챌린지 공식 달성' },
   { value: 6, suffix: '단계', label: '체크포인트 리워드', sub: '30부터 250까지 단계별 보상' },
   { value: 100, suffix: '%', label: '자격증 응시 지원', sub: '200 클릭 달성 부원 전원' },
-  { value: 100, suffix: '%', label: '서로 돕는 커뮤니티', sub: 'Learn It, Teach 함께 완주' },
+  { value: 100, suffix: '%', label: '서로 돕는 커뮤니티', sub: 'Learn It, Teach 함께 달성' },
 ]
 
 export const talks = [
@@ -221,7 +221,7 @@ export const roadmap = [
     season: '2학기',
     emoji: '🍂',
     items: [
-      { date: '09.01', title: '250 클릭 완주자 1차 어워즈', hot: true },
+      { date: '09.01', title: '250 클릭 달성자 1차 어워즈', hot: true },
       { date: '09.15', title: '2기 신규 부원 모집 & 웰컴 세션' },
       { date: '10.20', title: 'Microsoft Ignite Recap 세션' },
     ],

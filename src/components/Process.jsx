@@ -85,7 +85,7 @@ function Horizontal() {
         <div className="mx-auto w-full max-w-6xl px-6">
           <SectionHeading
             eyebrow="Roadmap to 250 Clicks"
-            title="MSA 250 완주로 가는"
+            title="MSA 250 달성으로 가는"
             accent="8단계 여정"
             desc="혼자 달리지 않습니다. 학습부터 아티클 기고, 체크포인트 돌파와 최종 공식 인증까지 LIT이 함께합니다."
           />
@@ -104,7 +104,7 @@ function Horizontal() {
           ))}
           <div className="glass flex w-[300px] flex-col items-start justify-center rounded-3xl p-8">
             <p className="font-display text-3xl font-bold leading-tight">
-              그리고, <span className="text-gradient">250 완주</span>
+              그리고, <span className="text-gradient">250 달성</span>
               <br />
               공식 앰버서더로.
             </p>
@@ -139,7 +139,7 @@ function Vertical() {
       <div className="mx-auto max-w-6xl">
         <SectionHeading
           eyebrow="Roadmap to 250 Clicks"
-          title="MSA 250 완주로 가는"
+          title="MSA 250 달성으로 가는"
           accent="8단계 여정"
           desc="혼자 달리지 않습니다. 학습부터 아티클 기고, 체크포인트 돌파와 최종 공식 인증까지 LIT이 함께합니다."
         />

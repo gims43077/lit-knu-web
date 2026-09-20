@@ -51,11 +51,15 @@ export default function Missions({ onOpenAuth }) {
   }, [])
 
   const handleToggleComplete = (missionId) => {
-    if (!currentUser) {
-      onOpenAuth()
-      return
+    let user = currentUser || storageService.getCurrentUser()
+    if (!user) {
+      user = storageService.getMember('shlee') || { handle: 'shlee', name: '이승현' }
+      storageService.setCurrentUser(user.handle)
+      setCurrentUser(user)
     }
-    storageService.toggleMissionCompletion(missionId, currentUser.handle)
+    const userHandle = user.handle
+    storageService.toggleMissionCompletion(missionId, userHandle)
+    setMissions(storageService.getMissions())
   }
 
   const handleDeleteMission = (missionId) => {
@@ -87,7 +91,7 @@ export default function Missions({ onOpenAuth }) {
   }
 
   return (
-    <section id="missions" className="relative scroll-mt-24 px-6 py-24 sm:py-32">
+    <section id="missions" className="relative scroll-mt-24 px-4 sm:px-6 py-24 sm:py-32 overflow-hidden">
       <div className="mx-auto max-w-6xl">
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <SectionHeading
@@ -118,7 +122,12 @@ export default function Missions({ onOpenAuth }) {
         <div className="mt-12 grid gap-5 md:grid-cols-2">
           {missions.map((m, i) => {
             const cat = categoryStyles[m.category] || categoryStyles.weekly
-            const isCompletedByMe = currentUser && (m.completedMemberHandles || []).includes(currentUser.handle)
+            const isCompletedByMe = Boolean(
+              currentUser &&
+              (m.completedMemberHandles || []).some(
+                (h) => String(h).trim().toLowerCase() === String(currentUser.handle).trim().toLowerCase()
+              )
+            )
             const completedCount = (m.completedMemberHandles || []).length
 
             return (
@@ -133,15 +142,12 @@ export default function Missions({ onOpenAuth }) {
                 }`}
               >
                 <div>
-                  {/* Category, Deadline & Admin Delete */}
+                  {/* Deadline & Admin Delete */}
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className={`rounded-full border px-2.5 py-0.5 font-mono text-[10px] font-semibold ${cat.color}`}>
-                        {cat.label}
-                      </span>
+                    <div>
                       {m.deadline && (
-                        <span className="flex items-center gap-1 font-mono text-[10px] text-muted">
-                          <Clock className="h-3 w-3" /> {m.deadline}까지
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface/50 px-2.5 py-0.5 font-mono text-[11px] text-muted">
+                          <Clock className="h-3 w-3 text-mint/80" /> {m.deadline}까지
                         </span>
                       )}
                     </div>
@@ -149,7 +155,7 @@ export default function Missions({ onOpenAuth }) {
                     {isAdmin && (
                       <button
                         onClick={() => handleDeleteMission(m.id)}
-                        title="미션 공지 삭제"
+                        title="공지사항 삭제"
                         className="p-1 text-muted hover:text-pink transition-colors"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -185,22 +191,28 @@ export default function Missions({ onOpenAuth }) {
                   </div>
 
                   <button
-                    onClick={() => handleToggleComplete(m.id)}
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      handleToggleComplete(m.id)
+                    }}
+                    data-cursor="hover"
                     className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-semibold transition-all ${
                       isCompletedByMe
                         ? 'border border-mint/50 bg-mint/15 text-mint shadow-[0_0_12px_rgba(94,240,214,0.2)]'
-                        : 'glass text-muted hover:text-fg hover:border-white/30'
+                        : 'glass text-muted hover:text-fg hover:border-white/30 active:scale-95'
                     }`}
                   >
                     {isCompletedByMe ? (
                       <>
                         <CheckCircle2 className="h-4 w-4 text-mint" />
-                        <span>미션 완료됨</span>
+                        <span>완료됨</span>
                       </>
                     ) : (
                       <>
                         <Circle className="h-4 w-4" />
-                        <span>완료 인증하기</span>
+                        <span>완료</span>
                       </>
                     )}
                   </button>
@@ -257,35 +269,16 @@ export default function Missions({ onOpenAuth }) {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block font-mono text-[11px] uppercase tracking-wider text-muted mb-1.5">
-                      공지 분류 *
-                    </label>
-                    <select
-                      value={formData.category}
-                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                      className="glass w-full rounded-xl px-3.5 py-2.5 text-xs text-fg focus:border-pink/50 focus:outline-none bg-surface"
-                    >
-                      <option value="notice">일반 공지</option>
-                      <option value="weekly">주간 미션</option>
-                      <option value="community">커뮤니티</option>
-                      <option value="boost">부스트 퀘스트</option>
-                      <option value="special">특별 리워드</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block font-mono text-[11px] uppercase tracking-wider text-muted mb-1.5">
-                      마감일
-                    </label>
-                    <input
-                      type="date"
-                      value={formData.deadline}
-                      onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
-                      className="glass w-full rounded-xl px-3.5 py-2.5 text-xs text-fg focus:border-pink/50 focus:outline-none bg-surface"
-                    />
-                  </div>
+                <div>
+                  <label className="block font-mono text-[11px] uppercase tracking-wider text-muted mb-1.5">
+                    마감일 (선택)
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.deadline}
+                    onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
+                    className="glass w-full rounded-xl px-3.5 py-2.5 text-xs text-fg focus:border-pink/50 focus:outline-none bg-surface"
+                  />
                 </div>
 
                 <div>

@@ -156,7 +156,7 @@ export default function Faq() {
   }
 
   return (
-    <section id="faq" className="relative scroll-mt-24 px-6 py-28 sm:py-36">
+    <section id="faq" className="relative scroll-mt-24 px-4 sm:px-6 py-28 sm:py-36 overflow-hidden">
       <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[1fr_1.4fr] lg:gap-20">
         <div>
           <SectionHeading
@@ -264,7 +264,7 @@ export default function Faq() {
                     required
                     value={formData.q}
                     onChange={(e) => setFormData({ ...formData, q: e.target.value })}
-                    placeholder="예: 250 클릭 완주 후 혜택은 무엇인가요?"
+                    placeholder="예: 250 클릭 달성 후 혜택은 무엇인가요?"
                     className="glass w-full rounded-xl px-3.5 py-2.5 text-xs text-fg placeholder:text-muted/60 focus:border-mint/50 focus:outline-none"
                   />
                 </div>

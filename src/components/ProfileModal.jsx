@@ -161,20 +161,18 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
         <form onSubmit={handleSubmit} className="mt-5 space-y-4 max-h-[460px] overflow-y-auto pr-1">
           {/* Clicks count adjustment box */}
           <div className="rounded-2xl border border-pink/30 bg-pink/[0.06] p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-mono text-xs uppercase tracking-wider text-pink font-semibold">
-                  {isEditingOther ? `${activeMember.name} 님의 클릭수` : '현재 달성 클릭수'}
-                </p>
-                <p className="text-xs text-muted">250명 완주를 향해 실시간으로 숫자를 업데이트하세요.</p>
-              </div>
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-sm font-semibold text-pink">
+                {isEditingOther ? `${activeMember.name} 님의 클릭수` : '현재 달성 클릭수'}
+              </span>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => handleClicksChange(-1)}
-                  className="glass flex h-8 w-8 items-center justify-center rounded-lg text-fg hover:border-pink/40"
+                  className="glass flex h-9 w-9 items-center justify-center rounded-xl text-fg hover:border-pink/40 hover:bg-white/[0.06] active:scale-95 transition-all"
+                  aria-label="클릭수 감소"
                 >
-                  <Minus className="h-3.5 w-3.5" />
+                  <Minus className="h-4 w-4" />
                 </button>
                 <input
                   type="number"
@@ -184,14 +182,15 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
                   onChange={(e) =>
                     setFormData({ ...formData, clicks: Math.max(0, Math.min(250, Number(e.target.value))) })
                   }
-                  className="glass w-20 rounded-lg py-1 text-center font-sans text-xl font-black text-fg focus:outline-none"
+                  className="glass h-9 w-20 rounded-xl px-0 text-center font-sans text-lg font-bold tabular-nums text-fg focus:outline-none focus:border-pink/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
                 <button
                   type="button"
                   onClick={() => handleClicksChange(1)}
-                  className="glass flex h-8 w-8 items-center justify-center rounded-lg text-fg hover:border-pink/40"
+                  className="glass flex h-9 w-9 items-center justify-center rounded-xl text-fg hover:border-pink/40 hover:bg-white/[0.06] active:scale-95 transition-all"
+                  aria-label="클릭수 증가"
                 >
-                  <Plus className="h-3.5 w-3.5" />
+                  <Plus className="h-4 w-4" />
                 </button>
               </div>
             </div>
@@ -202,7 +201,7 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
             <div className="flex items-center gap-3.5">
               <div className="relative group shrink-0">
                 <img
-                  src={formData.avatar || activeMember.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${activeMember.handle}`}
+                  src={formData.avatar || activeMember.avatar || AVATAR_PRESETS[0]}
                   alt={formData.name || 'avatar'}
                   className="h-14 w-14 rounded-2xl object-cover border-2 border-mint/50 shadow-md"
                 />
@@ -243,14 +242,19 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
             </div>
 
             {/* Quick avatar presets */}
-            <div className="mt-2.5 flex items-center gap-1.5 pt-2 border-t border-line/50">
-              <span className="font-mono text-[9px] text-muted mr-1">추천 프리셋:</span>
+            <div className="mt-2.5 flex items-center gap-2 pt-2 border-t border-line/50 flex-wrap">
+              <span className="font-mono text-[9px] text-muted mr-1">추천 프리셋 (단색):</span>
               {AVATAR_PRESETS.map((preset, idx) => (
                 <button
                   key={idx}
                   type="button"
                   onClick={() => setFormData({ ...formData, avatar: preset })}
-                  className="h-6 w-6 rounded-lg overflow-hidden border border-white/20 hover:border-mint hover:scale-110 transition-all shrink-0"
+                  title={`단색 컬러 프리셋 ${idx + 1}`}
+                  className={`h-6 w-6 rounded-lg overflow-hidden border transition-all shrink-0 ${
+                    formData.avatar === preset
+                      ? 'border-white scale-110 shadow-[0_0_8px_rgba(255,255,255,0.5)] ring-2 ring-white/50'
+                      : 'border-white/20 hover:border-mint hover:scale-110'
+                  }`}
                 >
                   <img src={preset} alt={`preset-${idx}`} className="h-full w-full object-cover" />
                 </button>

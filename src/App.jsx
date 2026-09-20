@@ -7,7 +7,6 @@ import Cursor from './components/Cursor.jsx'
 import ScrollProgress from './components/ScrollProgress.jsx'
 import Nav from './components/Nav.jsx'
 import Hero from './components/Hero.jsx'
-import Marquee from './components/Marquee.jsx'
 import ChallengeHUD from './components/ChallengeHUD.jsx'
 import Leaderboard from './components/Leaderboard.jsx'
 import ArticleHub from './components/ArticleHub.jsx'
@@ -98,9 +97,8 @@ export default function App() {
         onOpenProfile={() => handleOpenProfile(null)}
       />
 
-      <main>
+      <main className="w-full max-w-[100vw] overflow-x-clip">
         <Hero ready={ready} />
-        <Marquee />
 
         {/* 1. 챌린지 대시보드 */}
         <ChallengeHUD

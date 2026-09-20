@@ -85,7 +85,7 @@ export default function Nav({ onOpenAuth, onOpenProfile }) {
                     alt={currentUser.name}
                     className="h-6 w-6 rounded-full object-cover border border-line"
                   />
-                  <span className="font-semibold">{currentUser.name}</span>
+                  <span className="font-semibold max-w-[75px] sm:max-w-none truncate">{currentUser.name}</span>
                   <span className="rounded-full bg-pink/15 px-1.5 py-0.5 font-mono text-[10px] font-bold text-pink">
                     {currentUser.clicks || 0}
                   </span>
