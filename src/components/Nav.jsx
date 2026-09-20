@@ -15,7 +15,7 @@ import MagneticButton from './ui/MagneticButton.jsx'
 import { links, nav } from '../data/site.js'
 import { storageService } from '../services/storageService.js'
 
-export default function Nav({ onOpenAuth, onOpenProfile }) {
+export default function Nav({ onOpenAuth, onOpenProfile, onNavigate }) {
   const [hidden, setHidden] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
@@ -62,6 +62,9 @@ export default function Nav({ onOpenAuth, onOpenProfile }) {
               <li key={item.href}>
                 <a
                   href={item.href}
+                  onClick={(event) => {
+                    if (onNavigate) { event.preventDefault(); onNavigate(item.href) }
+                  }}
                   className="group relative rounded-full px-3 py-1.5 text-xs text-muted transition-colors hover:text-fg"
                 >
                   {item.label}
@@ -154,7 +157,7 @@ export default function Nav({ onOpenAuth, onOpenProfile }) {
                 >
                   <a
                     href={item.href}
-                    onClick={() => setOpen(false)}
+                    onClick={(event) => { setOpen(false); if (onNavigate) { event.preventDefault(); onNavigate(item.href) } }}
                     className="block font-display text-4xl font-bold tracking-tight text-fg"
                   >
                     {item.label}

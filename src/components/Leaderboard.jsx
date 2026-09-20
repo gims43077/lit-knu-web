@@ -67,48 +67,9 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
           eyebrow="Leaderboard"
           title="LIT"
           accent="리더보드"
-          desc="부원별 달성 조회수와 단계별 보상입니다."
         />
 
-        {/* 1. 체크포인트 단계별 보상 안내 */}
-        <Reveal delay={0.1} className="mt-8">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {milestones.map((ml) => {
-              const achieversCount = members.filter((m) => (m.clicks || 0) >= ml.count).length
-
-              return (
-                <div
-                  key={ml.count}
-                  className="group relative flex items-center gap-3.5 rounded-2xl border border-line bg-surface/50 p-4 transition-all duration-300 hover:scale-[1.01] hover:border-white/30 hover:bg-surface/80"
-                >
-                  {/* Icon badge */}
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-2xl transition-transform group-hover:scale-110">
-                    {ml.icon}
-                  </div>
-
-                  {/* Reward details */}
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-mono text-xs font-black tracking-wide text-mint">
-                        {ml.count} 조회수
-                      </span>
-                      <span className="flex items-center gap-1 font-mono text-[11px] text-muted">
-                        <Users className="h-3 w-3" />
-                        {achieversCount}명 달성
-                      </span>
-                    </div>
-
-                    <h4 className="mt-1 font-display text-sm sm:text-base font-bold leading-snug tracking-tight text-fg group-hover:text-white">
-                      {ml.reward}
-                    </h4>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </Reveal>
-
-        {/* 관리자 모드 안내 및 빠른 부원 등록 */}
+        {/* 부원 영역의 관리자 관리 기능 */}
         {isAdmin && (
           <Reveal delay={0.12} className="mt-8">
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-pink/40 bg-pink/10 p-3.5 sm:px-5">
@@ -123,14 +84,6 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <button
-                  type="button"
-                  onClick={() => setIsMilestonesModalOpen(true)}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-bold text-fg transition-all hover:bg-white/20 hover:border-white/30"
-                >
-                  <Award className="h-3.5 w-3.5 text-mint" />
-                  보상 및 마일스톤 설정
-                </button>
-                <button
                   onClick={() => onOpenAuth?.('register')}
                   className="inline-flex items-center gap-1.5 rounded-xl bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))] px-3.5 py-1.5 text-xs font-bold text-bg transition-transform hover:scale-105 shadow-md shadow-pink/20"
                 >
@@ -142,7 +95,8 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
           </Reveal>
         )}
 
-        {/* 2. 컨트롤 바 (검색) */}
+        {/* 부원 검색 및 목록 */}
+        <div id="members-list" className="scroll-mt-28">
         <Reveal delay={0.15} className="mt-6">
           <div className="flex justify-end">
             <div className="relative w-full sm:w-72">
@@ -326,6 +280,21 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
             })
           )}
         </div>
+        </div>
+
+        {/* 단계별 보상 영역 */}
+        <Reveal delay={0.1} className="mt-16 scroll-mt-28" id="milestones">
+          <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+            <h3 className="font-display text-2xl font-bold text-fg">단계별 보상</h3>
+            {isAdmin && <button type="button" onClick={() => setIsMilestonesModalOpen(true)} className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-bold text-fg transition-all hover:bg-white/20 hover:border-white/30"><Award className="h-3.5 w-3.5 text-mint" /> 보상 및 마일스톤 설정</button>}
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {milestones.map((ml) => {
+              const achieversCount = members.filter((m) => (m.clicks || 0) >= ml.count).length
+              return <div key={ml.count} className="group relative flex items-center gap-3.5 rounded-2xl border border-line bg-surface/50 p-4 transition-all duration-300 hover:scale-[1.01] hover:border-white/30 hover:bg-surface/80"><div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-2xl transition-transform group-hover:scale-110">{ml.icon}</div><div className="min-w-0 flex-1"><div className="flex items-center justify-between gap-2"><span className="font-mono text-xs font-black tracking-wide text-mint">{ml.count} 조회수</span><span className="flex items-center gap-1 font-mono text-[11px] text-muted"><Users className="h-3 w-3" />{achieversCount}명 달성</span></div><h4 className="mt-1 font-display text-sm sm:text-base font-bold leading-snug tracking-tight text-fg group-hover:text-white">{ml.reward}</h4></div></div>
+            })}
+          </div>
+        </Reveal>
       </div>
 
       <MilestonesModal

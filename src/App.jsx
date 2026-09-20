@@ -110,6 +110,7 @@ export default function App() {
           authorFilter={authorFilter}
           onClearAuthorFilter={handleClearAuthorFilter}
           onFilterAuthor={handleFilterAuthor}
+          onOpenProfile={handleOpenProfile}
           onOpenAuth={() => handleOpenAuth('login')}
         />
         {/* 2. 부원 순위 · 3. 단계별 보상 */}

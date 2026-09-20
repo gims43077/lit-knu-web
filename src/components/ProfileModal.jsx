@@ -1,15 +1,16 @@
 import Modal from './ui/Modal.jsx'
-import { useState, useEffect, Fragment } from 'react'
+import { useState, useEffect, Fragment, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { Camera, Edit3, ExternalLink, Minus, Plus, Save, Sparkles, Trash2, Upload, User, ShieldCheck, X } from 'lucide-react'
 import { storageService, extractContributorId, formatContributorLink, AVATAR_PRESETS, compressImage } from '../services/storageService.js'
 
-export default function ProfileModal({ isOpen, onClose, targetMember = null, inline = false }) {
+export default function ProfileModal({ isOpen, onClose, onRequestClose, onDirtyChange, onSaved, targetMember = null, inline = false }) {
   const [currentUser, setCurrentUser] = useState(storageService.getCurrentUser())
   const [isAdmin, setIsAdmin] = useState(storageService.isAdmin())
   const [activeMember, setActiveMember] = useState(targetMember || storageService.getCurrentUser())
   const [newPassword, setNewPassword] = useState('')
   const [isSaving, setIsSaving] = useState(false)
+  const initialSnapshot = useRef('')
   const [formData, setFormData] = useState({
     name: '',
     role: '',
@@ -54,10 +55,19 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null, inl
           github: user.socials?.github || '',
           links: Array.isArray(user.links) ? user.links : [],
         })
+        initialSnapshot.current = JSON.stringify({
+          name: user.name || '', role: user.role || '', major: user.major || '', avatar: user.avatar || '',
+          certifications: user.certifications || '', contributorId: user.contributorId || extractContributorId(user.msLink) || '',
+          bio: user.bio || '', clicks: user.clicks || 0, linkedin: user.socials?.linkedin || '', blog: user.socials?.blog || '',
+          github: user.socials?.github || '', links: Array.isArray(user.links) ? user.links : [], newPassword: '',
+        })
       }
       setNewPassword('')
     }
   }, [isOpen, targetMember])
+
+  const isDirty = isOpen && initialSnapshot.current !== JSON.stringify({ ...formData, newPassword })
+  useEffect(() => { onDirtyChange?.(isDirty) }, [isDirty, onDirtyChange])
 
   if (!isOpen || !activeMember) return null
 
@@ -124,6 +134,7 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null, inl
       await storageService.updateMemberClicks(activeMember.handle, Number(formData.clicks), true)
       setNewPassword('')
       onClose()
+      onSaved?.()
     } catch (err) {
       alert(`프로필 저장 중 오류가 발생했습니다: ${err.message}`)
     } finally {
@@ -140,7 +151,7 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null, inl
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        onClick={inline ? undefined : onClose}
+        onClick={inline ? undefined : (onRequestClose || onClose)}
         className={inline ? 'hidden' : 'absolute inset-0 bg-black/80 backdrop-blur-md'}
       />
 
@@ -170,12 +181,12 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null, inl
               )}
             </div>
           </div>
-          <button onClick={onClose} className="rounded-full p-1 text-muted hover:text-fg">
+          <button onClick={onRequestClose || onClose} className="rounded-full p-1 text-muted hover:text-fg">
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} noValidate className="mt-5 space-y-4 pr-1">
+        <form data-profile-form onSubmit={handleSubmit} noValidate className="mt-5 space-y-4 pr-1">
           {/* Clicks count adjustment box */}
           <div className="rounded-2xl border border-pink/30 bg-pink/[0.06] p-4">
             <div className="flex items-center justify-between gap-3">
@@ -428,7 +439,7 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null, inl
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={onClose}
+                onClick={onRequestClose || onClose}
                 className="glass rounded-xl px-4 py-2.5 text-xs text-muted hover:text-fg"
               >
                 취소

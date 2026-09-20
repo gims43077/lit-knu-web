@@ -125,7 +125,6 @@ export default function Missions({ onOpenAuth }) {
             eyebrow="Notice"
             title="공지사항"
             accent=""
-            desc="LIT 공지사항과 주요 일정을 확인하세요."
           />
 
           {isAdmin && (
@@ -441,4 +440,3 @@ export default function Missions({ onOpenAuth }) {
     </section>
   )
 }
-

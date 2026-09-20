@@ -87,7 +87,6 @@ function Horizontal() {
             eyebrow="Roadmap to 250 Clicks"
             title="MSA 250 달성으로 가는"
             accent="8단계 여정"
-            desc="혼자 달리지 않습니다. 학습부터 아티클 기고, 체크포인트 돌파와 최종 공식 인증까지 LIT이 함께합니다."
           />
         </div>
 
@@ -141,7 +140,6 @@ function Vertical() {
           eyebrow="Roadmap to 250 Clicks"
           title="MSA 250 달성으로 가는"
           accent="8단계 여정"
-          desc="혼자 달리지 않습니다. 학습부터 아티클 기고, 체크포인트 돌파와 최종 공식 인증까지 LIT이 함께합니다."
         />
         <div className="relative mt-12 space-y-4 before:absolute before:left-6 before:top-0 before:h-full before:w-px before:bg-white/10">
           {process.map((s, i) => (

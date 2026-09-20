@@ -15,8 +15,8 @@ export const links = {
 export const nav = [
   { label: '소개', href: '#top' },
   { label: '피드', href: '#articles' },
-  { label: '부원 순위', href: '#leaderboard' },
-  { label: '단계별 보상', href: '#leaderboard' },
+  { label: '부원소개', href: '#members-list' },
+  { label: '단계별 보상', href: '#milestones' },
   { label: 'FAQ', href: '#faq' },
 ]
 

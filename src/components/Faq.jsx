@@ -170,7 +170,6 @@ export default function Faq() {
             eyebrow="FAQ"
             title="자주 묻는"
             accent="질문"
-            desc="LIT 챌린지와 활동에 관해 자주 묻는 질문들을 모았습니다."
           />
 
           {isAdmin && (
@@ -315,4 +314,3 @@ export default function Faq() {
     </section>
   )
 }
-

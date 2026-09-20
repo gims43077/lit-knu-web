@@ -27,7 +27,6 @@ export default function Talks() {
             eyebrow="Recent talks"
             title="이런 걸"
             accent="발표했어요."
-            desc="AI · 클라우드 · 보안 · DevOps. 모든 세션의 데모 코드와 슬라이드는 LIT GitHub에서 열람할 수 있습니다."
           />
           <Reveal delay={0.2}>
             <a

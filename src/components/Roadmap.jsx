@@ -11,7 +11,6 @@ export default function Roadmap() {
           eyebrow="Roadmap 2026"
           title="한 해의 리듬,"
           accent="한눈에."
-          desc="학기 중에는 매달 Meetup, 방학에는 챌린지와 워크샵. 2027년부터는 이 운영 계획을 매 학기 반복합니다."
         />
 
         <div className="relative mt-16">

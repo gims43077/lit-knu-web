@@ -117,7 +117,6 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
           eyebrow="Dashboard"
           title="챌린지"
           accent="대시보드"
-          desc="동아리 전체 현황과 나의 챌린지 진행 상태를 실시간으로 확인하세요."
         />
 
         {/* 1. 동아리 전체 요약 통계 그리드 */}
@@ -281,13 +280,6 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
                   >
                     <Edit3 className="h-3.5 w-3.5" />
                     프로필 수정
-                  </button>
-                  <button
-                    onClick={onOpenAuth}
-                    className="glass inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs text-muted transition-colors hover:border-white/30 hover:text-fg"
-                  >
-                    <UserCheck className="h-3.5 w-3.5" />
-                    부원 전환
                   </button>
                 </div>}
               </div>

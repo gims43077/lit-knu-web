@@ -67,7 +67,6 @@ export default function Activities() {
           eyebrow="What we do"
           title="배우는 방식은 자유,"
           accent="무대는 매달."
-          desc="스터디에서 시작해 자격증과 MSA까지. 모든 활동은 결국 하나의 발표 컨텐츠로 모입니다."
         />
         <div className="mt-16 grid auto-rows-[minmax(0,auto)] grid-cols-1 gap-4 md:grid-cols-4">
           {activities.map((a, i) => (

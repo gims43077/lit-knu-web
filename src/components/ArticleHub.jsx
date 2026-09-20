@@ -28,7 +28,7 @@ const platformStyles = {
   github: { label: 'GitHub', color: 'bg-white/10 text-fg border-white/20' },
 }
 
-export default function ArticleHub({ authorFilter, onClearAuthorFilter, onFilterAuthor, onOpenAuth }) {
+export default function ArticleHub({ authorFilter, onClearAuthorFilter, onFilterAuthor, onOpenAuth, onOpenProfile }) {
   const [articles, setArticles] = useState(storageService.getArticles())
   const [members, setMembers] = useState(storageService.getMembers())
   const [currentUser, setCurrentUser] = useState(storageService.getCurrentUser())
@@ -205,7 +205,6 @@ export default function ArticleHub({ authorFilter, onClearAuthorFilter, onFilter
               eyebrow="Feed"
               title="LIT"
               accent="피드"
-              desc="블로그와 LinkedIn에 작성한 글을 공유합니다."
             />
             {isAdmin && (
               <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-pink/40 bg-pink/15 px-3 py-1 font-mono text-[11px] text-pink font-semibold">
@@ -394,7 +393,7 @@ export default function ArticleHub({ authorFilter, onClearAuthorFilter, onFilter
                     <div className="flex items-center justify-between">
                       {/* Author badge */}
                       <button
-                        onClick={() => onFilterAuthor(art.authorHandle)}
+                        onClick={() => onOpenProfile?.(author || { handle: art.authorHandle })}
                         className="flex items-center gap-2 group/author text-left"
                       >
                         <img
@@ -618,4 +617,3 @@ export default function ArticleHub({ authorFilter, onClearAuthorFilter, onFilter
     </section>
   )
 }
-
