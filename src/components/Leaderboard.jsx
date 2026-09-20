@@ -82,7 +82,7 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
                   key={ml.count}
                   className={`group relative flex items-center gap-3.5 rounded-2xl border p-4 transition-all duration-300 hover:scale-[1.01] ${
                     isFinal
-                      ? 'border-amber/50 bg-gradient-to-br from-amber/15 via-amber/5 to-surface/80 shadow-[0_0_25px_rgba(255,209,102,0.12)] hover:border-amber'
+                      ? 'border-amber/50 bg-gradient-to-br from-amber/15 via-amber/5 to-surface/80 hover:border-amber'
                       : isHighlight
                       ? 'border-violet/40 bg-surface/70 hover:border-violet/70 hover:bg-surface'
                       : 'border-line bg-surface/50 hover:border-white/30 hover:bg-surface/80'
@@ -92,7 +92,7 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
                   <div
                     className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border text-2xl transition-transform group-hover:scale-110 ${
                       isFinal
-                        ? 'border-amber/40 bg-amber/20 shadow-[0_0_12px_rgba(255,209,102,0.25)]'
+                        ? 'border-amber/40 bg-amber/20'
                         : isHighlight
                         ? 'border-violet/30 bg-violet/15'
                         : 'border-white/10 bg-white/5'
@@ -120,7 +120,7 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
                     <h4
                       className={`mt-1 font-display text-sm sm:text-base font-bold leading-snug tracking-tight ${
                         isFinal
-                          ? 'text-amber font-black drop-shadow-[0_0_8px_rgba(255,209,102,0.3)]'
+                          ? 'text-amber font-black'
                           : 'text-fg group-hover:text-white'
                       }`}
                     >

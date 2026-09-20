@@ -424,7 +424,7 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
                       Contributor ID
                       {copied && <span className="text-mint font-sans font-bold normal-case text-[10px]">· 기본 링크 복사됨!</span>}
                     </span>
-                    <span className="font-mono text-sm sm:text-base font-bold tracking-tight text-mint drop-shadow-[0_0_8px_rgba(94,240,214,0.3)] transition-colors group-hover:text-white truncate block mt-0.5">
+                    <span className="font-mono text-sm sm:text-base font-bold tracking-tight text-mint transition-colors group-hover:text-white truncate block mt-0.5">
                       {myContributorId}
                     </span>
                   </div>
@@ -433,7 +433,7 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
                     <button
                       type="button"
                       onClick={() => setIsUrlGenOpen((v) => !v)}
-                      className="group inline-flex h-11 w-full lg:w-36 xl:w-40 items-center justify-center gap-1.5 sm:gap-2 rounded-xl bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))] px-2 sm:px-3 text-xs sm:text-sm font-bold text-bg shadow-[0_0_18px_rgba(255,111,177,0.35)] transition-all duration-300 hover:shadow-[0_0_24px_rgba(94,240,214,0.5)] hover:scale-[1.02] active:scale-[0.98]"
+                      className="group inline-flex h-11 w-full lg:w-36 xl:w-40 items-center justify-center gap-1.5 sm:gap-2 rounded-xl bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))] px-2 sm:px-3 text-xs sm:text-sm font-bold text-bg transition-all duration-300 hover:opacity-90 hover:scale-[1.02] active:scale-[0.98]"
                     >
                       <Link2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
                       <span className="truncate">URL 생성기</span>
@@ -442,7 +442,7 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
                     <button
                       type="button"
                       onClick={() => onFilterAuthor(currentUser.handle)}
-                      className="group inline-flex h-11 w-full lg:w-36 xl:w-40 items-center justify-center gap-1.5 sm:gap-2 rounded-xl bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))] px-2 sm:px-3 text-xs sm:text-sm font-bold text-bg shadow-[0_0_18px_rgba(255,111,177,0.35)] transition-all duration-300 hover:shadow-[0_0_24px_rgba(94,240,214,0.5)] hover:scale-[1.02] active:scale-[0.98]"
+                      className="group inline-flex h-11 w-full lg:w-36 xl:w-40 items-center justify-center gap-1.5 sm:gap-2 rounded-xl bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))] px-2 sm:px-3 text-xs sm:text-sm font-bold text-bg transition-all duration-300 hover:opacity-90 hover:scale-[1.02] active:scale-[0.98]"
                     >
                       <span className="truncate">내가 쓴 글 보기</span>
                       <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 transition-transform duration-300 group-hover:translate-x-0.5" />
