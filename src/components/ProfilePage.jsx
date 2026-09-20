@@ -6,11 +6,7 @@ import ChallengeHUD from './ChallengeHUD.jsx'
 import ProfileModal from './ProfileModal.jsx'
 import AuthModal from './AuthModal.jsx'
 import { storageService } from '../services/storageService.js'
-
-function safeBack() {
-  if (document.referrer && document.referrer.startsWith(window.location.origin) && window.history.length > 1) window.history.back()
-  else window.location.assign(import.meta.env.BASE_URL || '/')
-}
+import { getSiteBase } from '../utils/siteBase.js'
 
 export default function ProfilePage({ onOpenAuth }) {
   const [member, setMember] = useState(null)
@@ -33,8 +29,12 @@ export default function ProfilePage({ onOpenAuth }) {
 
   const ownProfile = useMemo(() => member && currentUser && member.handle.toLowerCase() === currentUser.handle.toLowerCase(), [member, currentUser])
   const canManage = Boolean(storageService.isAdmin())
-  const base = import.meta.env.BASE_URL || '/'
-  const home = () => { sessionStorage.removeItem('__lit_path'); window.location.assign(base) }
+  const base = getSiteBase()
+  // 프로필에서의 돌아가기는 방문 기록에 의존하지 않고 항상 랜딩의 소개 영역으로 이동한다.
+  const home = () => {
+    sessionStorage.removeItem('__lit_path')
+    window.location.assign(`${base}#top`)
+  }
   const openAuth = () => { onOpenAuth?.('login'); setAuthOpen(true) }
   const authorLink = (handle) => window.location.assign(`${base}?author=${encodeURIComponent(handle)}#articles`)
   const requestNavigation = (action) => {
@@ -43,7 +43,10 @@ export default function ProfilePage({ onOpenAuth }) {
     setConfirmOpen(true)
   }
   const closeEditor = () => requestNavigation(() => setEditorOpen(false))
-  const navigateFromNav = (href) => requestNavigation(() => window.location.assign(`${base}${href}`))
+  const navigateFromNav = (href) => requestNavigation(() => {
+    sessionStorage.removeItem('__lit_path')
+    window.location.assign(`${base}${href}`)
+  })
 
   useEffect(() => {
     const warn = (event) => { if (editorDirty) { event.preventDefault(); event.returnValue = '' } }
@@ -54,7 +57,7 @@ export default function ProfilePage({ onOpenAuth }) {
   return <div className="min-h-screen bg-bg">
     <Nav onNavigate={navigateFromNav} onOpenAuth={openAuth} onOpenProfile={() => window.scrollTo({ top: 0, behavior: 'smooth' })} />
     <main className="mx-auto max-w-6xl px-4 pb-24 pt-28 sm:px-6">
-      <button onClick={() => requestNavigation(safeBack)} className="mb-6 inline-flex items-center gap-2 text-sm text-muted hover:text-fg"><ArrowLeft className="h-4 w-4" /> 돌아가기</button>
+      <button onClick={() => requestNavigation(home)} className="mb-6 inline-flex items-center gap-2 text-sm text-muted hover:text-fg"><ArrowLeft className="h-4 w-4" /> 돌아가기</button>
       {!member ? <div className="glass rounded-3xl p-10 text-center"><LockKeyhole className="mx-auto mb-4 h-8 w-8 text-mint" /><h1 className="font-display text-2xl font-bold">프로필을 보려면 로그인하세요</h1><button onClick={openAuth} className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))] px-5 py-3 text-sm font-bold text-bg"><LogIn className="h-4 w-4" /> 로그인</button></div> : <>
         <section className="glass relative rounded-3xl border border-line p-6 sm:p-9">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-start"><img src={member.avatar} alt={member.name} className="h-24 w-24 rounded-3xl border-2 border-mint/40 object-cover" /><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><p className="font-mono text-xs text-mint">@{member.handle}</p>{canManage && <span className="inline-flex items-center gap-1 rounded-full border border-pink/40 bg-pink/10 px-2 py-0.5 text-[10px] text-pink"><ShieldCheck className="h-3 w-3" /> 관리자</span>}</div><h1 className="mt-1 font-display text-3xl font-black text-fg sm:text-4xl">{member.name}</h1><p className="mt-2 text-sm text-muted">{[member.role, member.major].filter(Boolean).join(' · ')}</p><p className="mt-4 max-w-2xl text-sm leading-relaxed text-fg/80">{member.bio || '아직 소개가 등록되지 않았습니다.'}</p><div className="mt-5 flex flex-wrap gap-2">{(member.links || []).filter((link) => /^https?:\/\//i.test(link.url) && !/litofficial/i.test(link.url)).map((link, i) => <a key={i} href={link.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-xl border border-mint/30 bg-mint/10 px-3 py-2 text-xs text-mint"><ExternalLink className="h-3 w-3" /> {link.name || link.platform || '링크'}</a>)}{Object.entries(member.socials || {}).filter(([, url]) => /^https?:\/\//i.test(url) && !/litofficial/i.test(url)).map(([name, url]) => <a key={name} href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-xl border border-line bg-white/[0.04] px-3 py-2 text-xs text-fg"><ExternalLink className="h-3 w-3" /> {name}</a>)}</div></div></div>
@@ -67,6 +70,6 @@ export default function ProfilePage({ onOpenAuth }) {
     <Footer />
     <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} initialTab="login" />
     {confirmOpen && <div className="fixed inset-0 z-[120] flex items-center justify-center p-4"><div className="absolute inset-0 bg-black/75" onClick={() => setConfirmOpen(false)} /><div role="alertdialog" className="relative w-full max-w-sm rounded-2xl border border-line bg-surface p-6 shadow-2xl"><h2 className="font-display text-lg font-bold text-fg">변경사항을 저장하시겠습니까?</h2><p className="mt-2 text-sm text-muted">저장하지 않은 프로필 수정 내용이 있습니다.</p><div className="mt-6 flex justify-end gap-2"><button onClick={() => setConfirmOpen(false)} className="glass rounded-xl px-3 py-2 text-xs text-muted">취소</button><button onClick={() => { setConfirmOpen(false); setEditorOpen(false); setEditorDirty(false); pendingAction?.() }} className="glass rounded-xl px-3 py-2 text-xs text-pink">저장하지 않음</button><button onClick={() => { setConfirmOpen(false); document.querySelector('[data-profile-form]')?.requestSubmit() }} className="rounded-xl bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))] px-3 py-2 text-xs font-bold text-bg">저장</button></div></div></div>}
-    {member && <ProfileModal isOpen={editorOpen} targetMember={member} onClose={() => setEditorOpen(false)} onRequestClose={closeEditor} onSaved={() => { setEditorDirty(false); setEditorOpen(false); pendingAction?.(); setPendingAction(null) }} onDirtyChange={setEditorDirty} />}
+    {member && <ProfileModal isOpen={editorOpen} targetMember={member} allowNavInteraction onClose={() => setEditorOpen(false)} onRequestClose={closeEditor} onSaved={() => { setEditorDirty(false); setEditorOpen(false); pendingAction?.(); setPendingAction(null) }} onDirtyChange={setEditorDirty} />}
   </div>
 }

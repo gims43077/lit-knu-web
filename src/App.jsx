@@ -15,6 +15,7 @@ import Footer from './components/Footer.jsx'
 import AuthModal from './components/AuthModal.jsx'
 import ProfilePage from './components/ProfilePage.jsx'
 import { storageService } from './services/storageService.js'
+import { getSiteBase } from './utils/siteBase.js'
 
 export default function App() {
   const [ready, setReady] = useState(false)
@@ -82,7 +83,7 @@ export default function App() {
   const handleOpenProfile = (member = null) => {
     const handle = member?.handle || storageService.getCurrentUser()?.handle
     if (!handle) { handleOpenAuth('login'); return }
-    const base = import.meta.env.BASE_URL || '/'
+    const base = getSiteBase()
     window.location.assign(`${base.replace(/\/$/, '')}/profile?member=${encodeURIComponent(handle)}`)
   }
 

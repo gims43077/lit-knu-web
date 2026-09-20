@@ -40,11 +40,11 @@ export function useScrollLock(active = true) {
   }, [active])
 }
 
-export default function Modal({ children }) {
+export default function Modal({ children, className = '' }) {
   useScrollLock()
   return createPortal(
     <div data-modal-root data-lenis-prevent role="dialog" aria-modal="true"
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 overscroll-none">
+      className={`fixed inset-0 ${className || 'z-[100]'} flex items-center justify-center p-4 overscroll-none`}>
       {children}
     </div>,
     document.body,

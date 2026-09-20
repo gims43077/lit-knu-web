@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { Camera, Edit3, ExternalLink, Minus, Plus, Save, Sparkles, Trash2, Upload, User, ShieldCheck, X } from 'lucide-react'
 import { storageService, extractContributorId, formatContributorLink, AVATAR_PRESETS, compressImage } from '../services/storageService.js'
 
-export default function ProfileModal({ isOpen, onClose, onRequestClose, onDirtyChange, onSaved, targetMember = null, inline = false }) {
+export default function ProfileModal({ isOpen, onClose, onRequestClose, onDirtyChange, onSaved, targetMember = null, inline = false, allowNavInteraction = false }) {
   const [currentUser, setCurrentUser] = useState(storageService.getCurrentUser())
   const [isAdmin, setIsAdmin] = useState(storageService.isAdmin())
   const [activeMember, setActiveMember] = useState(targetMember || storageService.getCurrentUser())
@@ -146,7 +146,7 @@ export default function ProfileModal({ isOpen, onClose, onRequestClose, onDirtyC
   const canEdit = canViewSensitive || isAdmin
   const Wrapper = inline ? Fragment : Modal
   return (
-    <Wrapper>
+    <Wrapper {...(!inline && allowNavInteraction ? { className: 'z-[50]' } : {})}>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
