@@ -12,10 +12,14 @@ const inMemoryStore = {
 }
 
 export async function getCosmosContainer() {
-  const endpoint = process.env.AZURE_COSMOS_DB_ENDPOINT || process.env.COSMOS_DB_ENDPOINT
-  const key = process.env.AZURE_COSMOS_DB_KEY || process.env.COSMOS_DB_KEY
-  const databaseName = process.env.AZURE_COSMOS_DB_DATABASE || 'LitMsaDatabase'
-  const containerName = process.env.AZURE_COSMOS_DB_CONTAINER || 'Members'
+  const endpoint =
+    process.env.COSMOS_ENDPOINT || process.env.AZURE_COSMOS_DB_ENDPOINT || process.env.COSMOS_DB_ENDPOINT
+  const key =
+    process.env.COSMOS_KEY || process.env.AZURE_COSMOS_DB_KEY || process.env.COSMOS_DB_KEY
+  const databaseName =
+    process.env.COSMOS_DATABASE || process.env.AZURE_COSMOS_DB_DATABASE || 'litknudb'
+  const containerName =
+    process.env.COSMOS_CONTAINER || process.env.AZURE_COSMOS_DB_CONTAINER || 'members'
 
   if (!endpoint || !key) {
     return null // In-memory fallback mode

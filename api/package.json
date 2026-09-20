@@ -1,6 +1,7 @@
 {
   "name": "lit-knu-azure-api",
   "version": "1.0.0",
+  "type": "module",
   "description": "Serverless Azure Functions API for LIT MSA Web on Azure Cosmos DB",
   "main": "index.js",
   "scripts": {

@@ -509,6 +509,70 @@ function notify() {
   })
 }
 
+// Cloud Sync Helper with Azure Cosmos DB & Functions
+let isSyncing = false
+export async function syncFromCloud() {
+  if (isSyncing || typeof window === 'undefined') return
+  isSyncing = true
+  try {
+    const res = await fetch('/api/members')
+    if (res.ok) {
+      const json = await res.json()
+      const cloudMembers = Array.isArray(json.data) ? json.data : Array.isArray(json.members) ? json.members : []
+      if (cloudMembers.length > 0) {
+        // Cosmos DB에 등록된 부원이 있는 경우 로컬 저장소와 스마트 병합
+        const local = storageService.getMembers()
+        const map = new Map()
+
+        // 1. 기본/로컬 멤버 먼저 세팅
+        local.forEach((m) => {
+          if (m && m.handle) map.set(m.handle.toLowerCase(), m)
+        })
+
+        // 2. 클라우드 멤버로 최신 업데이트 및 병합
+        cloudMembers.forEach((cm) => {
+          if (!cm || !cm.handle) return
+          const key = cm.handle.toLowerCase()
+          const existing = map.get(key)
+          if (existing) {
+            map.set(key, { ...existing, ...cm })
+          } else {
+            map.set(key, cm)
+          }
+        })
+
+        const merged = Array.from(map.values())
+        localStorage.setItem(STORAGE_KEYS.MEMBERS, JSON.stringify(merged))
+        notify()
+      } else {
+        // Cosmos DB가 비어있는 초기 상태인 경우, 기본 부원 데이터를 클라우드로 일괄 전송(Seed)
+        const local = storageService.getMembers()
+        if (local.length > 0) {
+          fetch('/api/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ members: local }),
+          }).catch(() => {})
+        }
+      }
+    }
+  } catch (err) {
+    console.debug('[Azure Sync] Local-first mode active:', err.message)
+  } finally {
+    isSyncing = false
+  }
+}
+
+// 브라우저 환경에서 실시간 클라우드 자동 동기화 활성화
+if (typeof window !== 'undefined') {
+  setTimeout(syncFromCloud, 500)
+  window.addEventListener('focus', () => syncFromCloud())
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') syncFromCloud()
+  })
+  setInterval(syncFromCloud, 10000)
+}
+
 export const storageService = {
   subscribe(fn) {
     listeners.add(fn)
@@ -649,6 +713,14 @@ export const storageService = {
     })
     localStorage.setItem(STORAGE_KEYS.MEMBERS, JSON.stringify(updated))
     notify()
+
+    // Azure Cosmos DB로 클릭수 실시간 전송
+    fetch('/api/clicks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ handle: clean, amount, isAbsolute }),
+    }).catch((e) => console.debug('[Azure Sync] clicks error:', e))
+
     return updated.find((m) => m.handle.toLowerCase() === clean.toLowerCase())
   },
 
@@ -684,7 +756,18 @@ export const storageService = {
     })
     localStorage.setItem(STORAGE_KEYS.MEMBERS, JSON.stringify(updated))
     notify()
-    return updated.find((m) => m.handle.toLowerCase() === clean.toLowerCase())
+
+    // Azure Cosmos DB로 프로필 변경사항 실시간 전송
+    const savedMember = updated.find((m) => m.handle.toLowerCase() === clean.toLowerCase())
+    if (savedMember) {
+      fetch('/api/members', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(savedMember),
+      }).catch((e) => console.debug('[Azure Sync] profile update error:', e))
+    }
+
+    return savedMember
   },
 
   addMember(newMember) {
@@ -722,6 +805,14 @@ export const storageService = {
     localStorage.setItem(STORAGE_KEYS.MEMBERS, JSON.stringify(members))
     this.setCurrentUser(memberObj.handle)
     notify()
+
+    // Azure Cosmos DB로 신규 부원 실시간 전송
+    fetch('/api/members', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(memberObj),
+    }).catch((e) => console.debug('[Azure Sync] addMember error:', e))
+
     return memberObj
   },
 
@@ -742,6 +833,12 @@ export const storageService = {
       localStorage.setItem(STORAGE_KEYS.CURRENT_USER, 'LIT')
     }
     notify()
+
+    // Azure Cosmos DB에서 부원 삭제 실시간 전송
+    fetch(`/api/members?handle=${encodeURIComponent(clean)}`, {
+      method: 'DELETE',
+    }).catch((e) => console.debug('[Azure Sync] deleteMember error:', e))
+
     return true
   },
 

@@ -32,6 +32,9 @@ jobs:
       - name: Build Frontend
         run: npm run build
 
+      - name: Install API Dependencies
+        run: cd api && npm install
+
       - name: Build And Deploy to Azure Static Web Apps
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1

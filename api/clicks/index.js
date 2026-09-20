@@ -13,15 +13,19 @@ export default async function (context, req) {
 
   if (container) {
     try {
-      const { resource: current } = await container.item(handle, handle).read()
-      if (current) {
-        const nextClicks = isAbsolute ? Math.max(0, delta) : Math.max(0, (Number(current.clicks) || 0) + delta)
-        current.clicks = nextClicks
-        current.updatedAt = new Date().toISOString()
-        const { resource: updated } = await container.items.upsert(current)
-        context.res = { status: 200, body: { success: true, member: updated, source: 'azure-cosmos-db' } }
-        return
+      const itemResponse = await container.item(handle, handle).read().catch(() => null)
+      const current = itemResponse?.resource
+      const nextClicks = isAbsolute ? Math.max(0, delta) : Math.max(0, (Number(current?.clicks) || 0) + delta)
+
+      const docToSave = {
+        ...(current || { id: handle, handle }),
+        clicks: nextClicks,
+        updatedAt: new Date().toISOString(),
       }
+
+      const { resource: updated } = await container.items.upsert(docToSave)
+      context.res = { status: 200, body: { success: true, member: updated, source: 'azure-cosmos-db' } }
+      return
     } catch (err) {
       context.log.warn('Cosmos DB atomic clicks error:', err.message)
     }
