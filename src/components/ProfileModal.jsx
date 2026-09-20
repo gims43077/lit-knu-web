@@ -300,7 +300,7 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
               type="text"
               value={formData.major}
               onChange={(e) => setFormData({ ...formData, major: e.target.value })}
-              placeholder="예: 컴퓨터학부 23학번"
+              placeholder=""
               className="glass w-full rounded-xl px-3 py-2 text-xs text-fg focus:border-pink/50 focus:outline-none"
             />
           </div>
@@ -341,7 +341,7 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
 
           <div>
             <label className="block font-mono text-[10px] uppercase text-muted mb-1">
-              Microsoft Learn Contributor ID
+              MS Learn Contributor ID
             </label>
             <input
               type="text"

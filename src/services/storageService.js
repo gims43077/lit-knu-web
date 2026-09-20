@@ -8,10 +8,11 @@ const STORAGE_KEYS = {
   CURRENT_USER: 'lit_msa_current_user_prod',
   IS_ADMIN: 'lit_msa_is_admin_prod',
   FAQS: 'lit_msa_faqs_v1',
+  MILESTONES: 'lit_msa_milestones_prod',
 }
 
-// 기본 마일스톤 및 리워드 정의
-export const MILESTONES = [
+// 기본 마일스톤 및 리워드 정의 (Azure Cosmos DB와 실시간 동적 연동)
+export const DEFAULT_MILESTONES = [
   { count: 30, title: '30 달성', icon: '🌱', badge: '30 달성', reward: '커피 기프티콘', color: 'mint' },
   { count: 50, title: '50 달성', icon: '🌿', badge: '50 달성', reward: '편의점 기프티콘', color: 'amber' },
   { count: 100, title: '100 달성', icon: '🪴', badge: '100 달성', reward: '케익 기프티콘', color: 'pink' },
@@ -19,6 +20,8 @@ export const MILESTONES = [
   { count: 200, title: '200 달성', icon: '🍎', badge: '200 달성', reward: '자격증 응시비 지원', color: 'violet' },
   { count: 250, title: '250 달성', icon: '👑', badge: '250 달성', reward: 'MSA 달성', color: 'gold' },
 ]
+
+export const MILESTONES = DEFAULT_MILESTONES
 
 export const createSolidColorAvatar = (hexColor) =>
   `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='${encodeURIComponent(hexColor)}'/%3E%3C/svg%3E`
@@ -219,30 +222,8 @@ export function generateContributorUrl(originalUrl, contributorId) {
   return res.isValid ? res.url : ''
 }
 
-// 부원 데이터 초기값 (Azure Cosmos DB와 100% 동기화된 기본 부원)
-export const DEFAULT_MEMBERS = [
-  {
-    id: 'shlee',
-    handle: 'shlee',
-    name: '이승환',
-    role: 'LIT 회장',
-    clicks: 120,
-    target: 250,
-    major: '컴퓨터학부 20학번',
-    contributorId: 'studentamb_482865',
-    certifications: 'AI-900, AZ-900',
-    msLink: 'https://learn.microsoft.com/?wt.mc_id=studentamb_482865',
-    password: '1234',
-    badges: ['30 달성', '50 달성', '100 달성'],
-    bio: '',
-    avatar: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%235EF0D6'/%3E%3C/svg%3E",
-    socials: {
-      linkedin: '',
-      blog: '',
-      github: '',
-    },
-  },
-]
+// 부원 데이터 초기값 (실제 운영용: 깨끗한 빈 목록)
+export const DEFAULT_MEMBERS = []
 
 // 아티클 데이터 초기값 (실제 운영용)
 const DEFAULT_ARTICLES = []
@@ -296,12 +277,16 @@ function purgeLegacyMockData() {
     const rawMembers = localStorage.getItem(STORAGE_KEYS.MEMBERS)
     if (rawMembers) {
       const parsed = JSON.parse(rawMembers)
-      const mockHandles = ['minji_kim', 'junho_park', 'sujin_choi', 'hyunjin_lee', 'daeun_jung', 'taeyang_kang', 'yuna_song']
-      const hasMocks = parsed.some((m) => mockHandles.includes(m.handle))
+      const mockHandles = ['shlee', 'minji_kim', 'junho_park', 'sujin_choi', 'hyunjin_lee', 'daeun_jung', 'taeyang_kang', 'yuna_song']
+      const hasMocks = parsed.some((m) => mockHandles.includes(m.handle) || m.name === '이승환')
       if (hasMocks) {
-        const cleaned = parsed.filter((m) => !mockHandles.includes(m.handle))
-        localStorage.setItem(STORAGE_KEYS.MEMBERS, JSON.stringify(cleaned.length > 0 ? cleaned : DEFAULT_MEMBERS))
+        const cleaned = parsed.filter((m) => !mockHandles.includes(m.handle) && m.name !== '이승환')
+        localStorage.setItem(STORAGE_KEYS.MEMBERS, JSON.stringify(cleaned))
       }
+    }
+    const current = localStorage.getItem(STORAGE_KEYS.CURRENT_USER)
+    if (current && (current.toLowerCase() === 'shlee' || current === '이승환')) {
+      localStorage.removeItem(STORAGE_KEYS.CURRENT_USER)
     }
     const rawArticles = localStorage.getItem(STORAGE_KEYS.ARTICLES)
     if (rawArticles) {
@@ -356,29 +341,32 @@ export async function syncFromCloud() {
         const json = await res.json().catch(() => null)
         if (!json) return
         const cloudMembers = Array.isArray(json.data) ? json.data : Array.isArray(json.members) ? json.members : []
-        const cleanedMembers = cloudMembers.map((m) => {
-          const rawClicks = Number(m.clicks)
-          const clicks = isNaN(rawClicks) ? 0 : Math.max(0, rawClicks)
-          const contributorId = m.contributorId || extractContributorId(m.msLink) || 'studentamb_482865'
-          const badges = MILESTONES.filter((ml) => clicks >= ml.count).map((ml) => ml.badge)
-          let avatar = m.avatar
-          if (!avatar || avatar.includes('unsplash.com') || avatar.includes('dicebear')) {
-            const hash = (m.handle || '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)
-            avatar = AVATAR_PRESETS[Math.abs(hash) % AVATAR_PRESETS.length]
-          }
-          return {
-            ...m,
-            handle: String(m.handle || m.id).toLowerCase(),
-            clicks,
-            avatar,
-            role: (m.role || 'LIT 부원').replace(/MLSA/g, 'MSA'),
-            contributorId,
-            certifications: m.certifications || '',
-            msLink: m.msLink || formatContributorLink(contributorId),
-            password: m.password || '',
-            badges,
-          }
-        })
+        const currentMilestones = storageService.getMilestones()
+        const cleanedMembers = cloudMembers
+          .filter((m) => m.handle !== 'shlee' && m.name !== '이승환')
+          .map((m) => {
+            const rawClicks = Number(m.clicks)
+            const clicks = isNaN(rawClicks) ? 0 : Math.max(0, rawClicks)
+            const contributorId = m.contributorId || extractContributorId(m.msLink) || 'studentamb_482865'
+            const badges = currentMilestones.filter((ml) => clicks >= ml.count).map((ml) => ml.badge)
+            let avatar = m.avatar
+            if (!avatar || avatar.includes('unsplash.com') || avatar.includes('dicebear')) {
+              const hash = (m.handle || '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)
+              avatar = AVATAR_PRESETS[Math.abs(hash) % AVATAR_PRESETS.length]
+            }
+            return {
+              ...m,
+              handle: String(m.handle || m.id).toLowerCase(),
+              clicks,
+              avatar,
+              role: (m.role || 'LIT 부원').replace(/MLSA/g, 'MSA'),
+              contributorId,
+              certifications: m.certifications || '',
+              msLink: m.msLink || formatContributorLink(contributorId),
+              password: m.password || '',
+              badges,
+            }
+          })
 
         const currentLocalStr = localStorage.getItem(STORAGE_KEYS.MEMBERS)
         const newMembersStr = JSON.stringify(cleanedMembers)
@@ -489,7 +477,40 @@ export async function syncFromCloud() {
       }
     })()
 
-    await Promise.allSettled([pMembers, pArticles, pMissions, pFaqs])
+    // 5. Milestones 독립 동기화 (조회수 기준, 보상 내용, 이모티콘 실시간 DB 연동)
+    const pMilestones = (async () => {
+      const res = await fetchWithTimeout('/api/milestones')
+      if (res && res.ok) {
+        const json = await res.json().catch(() => null)
+        if (!json) return
+        const cloudMilestones = Array.isArray(json.data) ? json.data : []
+        if (cloudMilestones.length > 0) {
+          const sorted = cloudMilestones
+            .map((item) => {
+              const rawCount = Number(item.count)
+              const count = isNaN(rawCount) ? 0 : Math.max(0, rawCount)
+              return {
+                count,
+                icon: String(item.icon || '🌱').trim(),
+                reward: String(item.reward || '').trim(),
+                title: item.title || `${count} 달성`,
+                badge: item.badge || `${count} 달성`,
+                color: item.color || (count >= 250 ? 'gold' : count >= 200 ? 'violet' : count >= 150 ? 'orange' : count >= 100 ? 'pink' : count >= 50 ? 'amber' : 'mint'),
+              }
+            })
+            .sort((a, b) => a.count - b.count)
+
+          const localStr = localStorage.getItem(STORAGE_KEYS.MILESTONES)
+          const newStr = JSON.stringify(sorted)
+          if (localStr !== newStr) {
+            localStorage.setItem(STORAGE_KEYS.MILESTONES, newStr)
+            notify()
+          }
+        }
+      }
+    })()
+
+    await Promise.allSettled([pMembers, pArticles, pMissions, pFaqs, pMilestones])
   } catch (err) {
     console.debug('[Azure Sync] Local-first mode active:', err.message)
   } finally {
@@ -519,32 +540,22 @@ export const storageService = {
       const data = localStorage.getItem(STORAGE_KEYS.MEMBERS)
       if (data) {
         let list = JSON.parse(data)
-        const legacyMockHandles = ['minji_kim', 'junho_park', 'sujin_choi', 'hyunjin_lee', 'daeun_jung', 'taeyang_kang', 'yuna_song']
-        const hasLegacyMocks = list.some((m) => legacyMockHandles.includes(m.handle))
+        const legacyMockHandles = ['shlee', 'minji_kim', 'junho_park', 'sujin_choi', 'hyunjin_lee', 'daeun_jung', 'taeyang_kang', 'yuna_song']
+        const hasLegacyMocks = list.some((m) => legacyMockHandles.includes(m.handle) || m.name === '이승환')
         if (hasLegacyMocks) {
-          list = list.filter((m) => !legacyMockHandles.includes(m.handle))
-          if (list.length === 0) list = [...DEFAULT_MEMBERS]
+          list = list.filter((m) => !legacyMockHandles.includes(m.handle) && m.name !== '이승환')
           localStorage.setItem(STORAGE_KEYS.MEMBERS, JSON.stringify(list))
         }
-        if (list.length === 0) {
-          list = [...DEFAULT_MEMBERS]
-          localStorage.setItem(STORAGE_KEYS.MEMBERS, JSON.stringify(list))
-        }
+        const currentMilestones = this.getMilestones()
         return list.map((m) => {
           const rawClicks = Number(m.clicks)
           const clicks = isNaN(rawClicks) ? 0 : Math.max(0, rawClicks)
           const contributorId = m.contributorId || extractContributorId(m.msLink) || 'studentamb_482865'
-          const badges = MILESTONES.filter((ml) => clicks >= ml.count).map((ml) => ml.badge)
-          // 만약 기존 저장된 아바타가 Unsplash 사진이거나 비어있으면 새 단색 프리셋으로 자동 교체
+          const badges = currentMilestones.filter((ml) => clicks >= ml.count).map((ml) => ml.badge)
           let avatar = m.avatar
           if (!avatar || avatar.includes('unsplash.com') || avatar.includes('dicebear')) {
-            const defaultMatch = DEFAULT_MEMBERS.find((dm) => dm.handle === m.handle)
-            if (defaultMatch) {
-              avatar = defaultMatch.avatar
-            } else {
-              const hash = (m.handle || '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)
-              avatar = AVATAR_PRESETS[hash % AVATAR_PRESETS.length]
-            }
+            const hash = (m.handle || '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)
+            avatar = AVATAR_PRESETS[Math.abs(hash) % AVATAR_PRESETS.length]
           }
           const memberClean = {
             ...m,
@@ -552,7 +563,7 @@ export const storageService = {
             avatar,
             role: (m.role || '').replace(/MLSA/g, 'MSA'),
             contributorId,
-            certifications: m.certifications || (m.handle === 'shlee' ? 'AI-900, AZ-900' : ''),
+            certifications: m.certifications || '',
             msLink: m.msLink || formatContributorLink(contributorId),
             password: m.password || '1234',
             badges,
@@ -564,10 +575,7 @@ export const storageService = {
     } catch (e) {
       console.warn('LocalStorage read error:', e)
     }
-    // 기본값 저장 후 반환
-    const withPw = DEFAULT_MEMBERS.map((m) => ({ ...m, password: m.password || '1234' }))
-    localStorage.setItem(STORAGE_KEYS.MEMBERS, JSON.stringify(withPw))
-    return withPw
+    return []
   },
 
   getMember(handle) {
@@ -629,11 +637,12 @@ export const storageService = {
     const clean = String(handle).trim()
     const delta = Number(amount) || 0
 
+    const currentMilestones = this.getMilestones()
     if (clean.toUpperCase() === 'LIT') {
       const currentClicks = Math.max(0, Number(ADMIN_MEMBER.clicks) || 0)
       const nextClicks = isAbsolute ? Math.max(0, delta) : Math.max(0, currentClicks + delta)
       ADMIN_MEMBER.clicks = nextClicks
-      ADMIN_MEMBER.badges = MILESTONES.filter((ml) => nextClicks >= ml.count).map((ml) => ml.badge)
+      ADMIN_MEMBER.badges = currentMilestones.filter((ml) => nextClicks >= ml.count).map((ml) => ml.badge)
       try {
         localStorage.setItem('lit_admin_member_override', JSON.stringify(ADMIN_MEMBER))
       } catch (e) {}
@@ -646,7 +655,7 @@ export const storageService = {
       if (m.handle.toLowerCase() === clean.toLowerCase()) {
         const currentClicks = Math.max(0, Number(m.clicks) || 0)
         const nextClicks = isAbsolute ? Math.max(0, delta) : Math.max(0, currentClicks + delta)
-        const badges = MILESTONES.filter((ml) => nextClicks >= ml.count).map((ml) => ml.badge)
+        const badges = currentMilestones.filter((ml) => nextClicks >= ml.count).map((ml) => ml.badge)
         return {
           ...m,
           clicks: nextClicks,
@@ -769,7 +778,7 @@ export const storageService = {
       avatar:
         newMember.avatar ||
         AVATAR_PRESETS[Math.abs(cleanHandle.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)) % AVATAR_PRESETS.length],
-      badges: MILESTONES.filter((ml) => (Number(newMember.clicks) || 0) >= ml.count).map((ml) => ml.badge),
+      badges: this.getMilestones().filter((ml) => (Number(newMember.clicks) || 0) >= ml.count).map((ml) => ml.badge),
     }
 
     members.push(memberObj)
@@ -1277,6 +1286,55 @@ export const storageService = {
     }
 
     return true
+  },
+
+  // 5. Milestones (동적 조회수 기준, 보상 내용, 이모티콘 관리)
+  getMilestones() {
+    try {
+      const data = localStorage.getItem(STORAGE_KEYS.MILESTONES)
+      if (data) {
+        const list = JSON.parse(data)
+        if (Array.isArray(list) && list.length > 0) {
+          return list.sort((a, b) => (Number(a.count) || 0) - (Number(b.count) || 0))
+        }
+      }
+    } catch (e) {
+      console.warn('LocalStorage read error:', e)
+    }
+    return DEFAULT_MILESTONES
+  },
+
+  async updateMilestones(newList) {
+    const sanitized = (Array.isArray(newList) ? newList : [])
+      .map((item) => {
+        const rawCount = Number(item.count)
+        const count = isNaN(rawCount) ? 0 : Math.max(0, rawCount)
+        return {
+          count,
+          icon: String(item.icon || '🌱').trim(),
+          reward: String(item.reward || '').trim(),
+          title: item.title || `${count} 달성`,
+          badge: item.badge || `${count} 달성`,
+          color: item.color || (count >= 250 ? 'gold' : count >= 200 ? 'violet' : count >= 150 ? 'orange' : count >= 100 ? 'pink' : count >= 50 ? 'amber' : 'mint'),
+        }
+      })
+      .sort((a, b) => a.count - b.count)
+
+    localStorage.setItem(STORAGE_KEYS.MILESTONES, JSON.stringify(sanitized))
+    notify()
+
+    try {
+      await fetch('/api/milestones', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sanitized),
+      })
+      syncFromCloud().catch(() => {})
+    } catch (e) {
+      console.warn('[Azure Sync] updateMilestones error:', e)
+    }
+
+    return sanitized
   },
 
   // 6. Cloud Backup & JSON Export

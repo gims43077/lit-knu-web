@@ -24,7 +24,6 @@ import {
 } from 'lucide-react'
 import {
   storageService,
-  MILESTONES,
   extractContributorId,
   generateContributorUrl,
   validateAndGenerateContributorUrl,
@@ -36,6 +35,7 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
   const [currentUser, setCurrentUser] = useState(storageService.getCurrentUser())
   const [members, setMembers] = useState(storageService.getMembers())
   const [articles, setArticles] = useState(storageService.getArticles())
+  const [milestones, setMilestones] = useState(() => storageService.getMilestones())
   const [copied, setCopied] = useState(false)
   const [justAdded, setJustAdded] = useState(null)
 
@@ -49,21 +49,23 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
       setCurrentUser(storageService.getCurrentUser())
       setMembers(storageService.getMembers())
       setArticles(storageService.getArticles())
+      setMilestones(storageService.getMilestones())
     })
     return unsub
   }, [])
 
   // 동아리 전체 종합 통계 계산
+  const targetClicks = milestones.length > 0 ? milestones[milestones.length - 1].count : 250
   const totalClicks = members.reduce((acc, m) => acc + (m.clicks || 0), 0)
-  const finishersCount = members.filter((m) => (m.clicks || 0) >= 250).length
+  const finishersCount = members.filter((m) => (m.clicks || 0) >= targetClicks).length
   const activeMembersCount = members.length
   const totalArticlesCount = articles.length
 
   // 내 다음 마일스톤 계산
   const myClicks = currentUser ? currentUser.clicks || 0 : 0
-  const progressPercent = Math.min(100, Math.round((myClicks / 250) * 100))
-  const nextMilestone = MILESTONES.find((m) => m.count > myClicks) || MILESTONES[MILESTONES.length - 1]
-  const isFinished = myClicks >= 250
+  const progressPercent = Math.min(100, Math.round((myClicks / targetClicks) * 100))
+  const nextMilestone = milestones.find((m) => m.count > myClicks) || milestones[milestones.length - 1] || { count: 250, title: '250 달성' }
+  const isFinished = myClicks >= targetClicks
   const clicksLeft = isFinished ? 0 : nextMilestone.count - myClicks
 
   // 클릭수 빠른 증가
@@ -314,7 +316,7 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
                       </div>
 
                       <span className="font-mono text-base sm:text-lg text-muted whitespace-nowrap shrink-0">
-                        / 250 조회수
+                        / {targetClicks} 조회수
                       </span>
 
                       <span className="rounded-full bg-mint/15 px-2.5 py-0.5 font-mono text-xs font-semibold text-mint whitespace-nowrap shrink-0">
@@ -352,9 +354,9 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
                     animate={{ width: `${progressPercent}%` }}
                     transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
                   />
-                  {/* Milestones pin indicators (250은 바의 끝점이므로 중간 분할 핀에서 제외하여 모서리 잘림 방지) */}
-                  {MILESTONES.filter((ml) => ml.count < 250).map((ml) => {
-                    const pos = (ml.count / 250) * 100
+                  {/* Milestones pin indicators (마지막 목표는 바의 끝점이므로 중간 분할 핀에서 제외하여 모서리 잘림 방지) */}
+                  {milestones.filter((ml) => ml.count < targetClicks).map((ml) => {
+                    const pos = (ml.count / targetClicks) * 100
                     const achieved = myClicks >= ml.count
                     return (
                       <div
@@ -378,9 +380,9 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
                   {/* 0 Start */}
                   <span className="absolute left-0 top-0 text-muted/70">0</span>
 
-                  {MILESTONES.map((ml, idx) => {
-                    const pos = (ml.count / 250) * 100
-                    const isLast = idx === MILESTONES.length - 1
+                  {milestones.map((ml, idx) => {
+                    const pos = (ml.count / targetClicks) * 100
+                    const isLast = idx === milestones.length - 1
                     const achieved = myClicks >= ml.count
 
                     return (

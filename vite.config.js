@@ -28,6 +28,26 @@ export default defineConfig({
               }
             }
             const proxyRes = await fetch(targetUrl, fetchOpts)
+            if (req.url.startsWith('/api/milestones') && proxyRes.status === 404) {
+              res.statusCode = 200
+              res.setHeader('Content-Type', 'application/json')
+              res.end(
+                JSON.stringify({
+                  success: true,
+                  count: 6,
+                  data: [
+                    { count: 30, title: '30 달성', icon: '🌱', badge: '30 달성', reward: '커피 기프티콘', color: 'mint' },
+                    { count: 50, title: '50 달성', icon: '🌿', badge: '50 달성', reward: '편의점 기프티콘', color: 'amber' },
+                    { count: 100, title: '100 달성', icon: '🪴', badge: '100 달성', reward: '케익 기프티콘', color: 'pink' },
+                    { count: 150, title: '150 달성', icon: '🌳', badge: '150 달성', reward: '치킨 기프티콘', color: 'orange' },
+                    { count: 200, title: '200 달성', icon: '🍎', badge: '200 달성', reward: '자격증 응시비 지원', color: 'violet' },
+                    { count: 250, title: '250 달성', icon: '👑', badge: '250 달성', reward: 'MSA 달성', color: 'gold' },
+                  ],
+                  source: 'dev-fallback',
+                })
+              )
+              return
+            }
             res.statusCode = proxyRes.status
             proxyRes.headers.forEach((val, key) => {
               if (!['content-encoding', 'transfer-encoding', 'connection'].includes(key.toLowerCase())) {

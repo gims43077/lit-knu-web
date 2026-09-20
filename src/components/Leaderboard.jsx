@@ -14,12 +14,15 @@ import {
   UserPlus,
   Users,
 } from 'lucide-react'
-import { storageService, MILESTONES } from '../services/storageService.js'
+import { storageService } from '../services/storageService.js'
 import { Reveal, SectionHeading } from './ui/Primitives.jsx'
+import MilestonesModal from './MilestonesModal.jsx'
 
 export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMember, onOpenAuth }) {
   const [members, setMembers] = useState(storageService.getMembers())
   const [isAdmin, setIsAdmin] = useState(storageService.isAdmin())
+  const [milestones, setMilestones] = useState(() => storageService.getMilestones())
+  const [isMilestonesModalOpen, setIsMilestonesModalOpen] = useState(false)
   const [activeTab, setActiveTab] = useState('all') // 'all', '250', '100', '50', '30'
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -27,6 +30,7 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
     const unsub = storageService.subscribe(() => {
       setMembers(storageService.getMembers())
       setIsAdmin(storageService.isAdmin())
+      setMilestones(storageService.getMilestones())
     })
     return unsub
   }, [])
@@ -37,12 +41,10 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
   // 필터 적용
   const filteredMembers = sortedMembers.filter((m) => {
     // 탭 필터
-    if (activeTab === '250' && (m.clicks || 0) < 250) return false
-    if (activeTab === '200' && (m.clicks || 0) < 200) return false
-    if (activeTab === '150' && (m.clicks || 0) < 150) return false
-    if (activeTab === '100' && (m.clicks || 0) < 100) return false
-    if (activeTab === '50' && (m.clicks || 0) < 50) return false
-    if (activeTab === '30' && (m.clicks || 0) < 30) return false
+    if (activeTab !== 'all') {
+      const minCount = Number(activeTab)
+      if (!isNaN(minCount) && (m.clicks || 0) < minCount) return false
+    }
 
     // 검색어 필터
     if (searchQuery.trim()) {
@@ -71,7 +73,7 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
         {/* 1. 체크포인트 단계별 보상 안내 */}
         <Reveal delay={0.1} className="mt-8">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {MILESTONES.map((ml) => {
+            {milestones.map((ml) => {
               const achieversCount = members.filter((m) => (m.clicks || 0) >= ml.count).length
 
               return (
@@ -116,16 +118,26 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
                   👑 운영진 관리자 모드 활성
                 </span>
                 <span className="text-xs text-muted hidden md:inline">
-                  · 부원별 클릭수 빠른 조정(+/-) 및 [정보 수정] 버튼을 통해 이름, 소개, 역할을 변경할 수 있습니다.
+                  · 부원 정보 관리 및 조회수 기준/보상 내용/이모티콘을 실시간으로 설정할 수 있습니다.
                 </span>
               </div>
-              <button
-                onClick={() => onOpenAuth?.('register')}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))] px-3.5 py-1.5 text-xs font-bold text-bg transition-transform hover:scale-105 shadow-md shadow-pink/20"
-              >
-                <UserPlus className="h-3.5 w-3.5" />
-                신규 부원 직접 등록
-              </button>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsMilestonesModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-bold text-fg transition-all hover:bg-white/20 hover:border-white/30"
+                >
+                  <Award className="h-3.5 w-3.5 text-mint" />
+                  보상 & 조회수 기준 관리
+                </button>
+                <button
+                  onClick={() => onOpenAuth?.('register')}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))] px-3.5 py-1.5 text-xs font-bold text-bg transition-transform hover:scale-105 shadow-md shadow-pink/20"
+                >
+                  <UserPlus className="h-3.5 w-3.5" />
+                  신규 부원 직접 등록
+                </button>
+              </div>
             </div>
           </Reveal>
         )}
@@ -155,9 +167,10 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
           ) : (
             filteredMembers.map((m, index) => {
               const rank = sortedMembers.findIndex((orig) => orig.handle === m.handle) + 1
-              const percent = Math.min(100, Math.round(((m.clicks || 0) / 250) * 100))
+              const maxMilestoneCount = milestones.length > 0 ? milestones[milestones.length - 1].count : 250
+              const percent = Math.min(100, Math.round(((m.clicks || 0) / maxMilestoneCount) * 100))
               const isTop3 = rank <= 3
-              const isFinished = (m.clicks || 0) >= 250
+              const isFinished = (m.clicks || 0) >= maxMilestoneCount
 
               return (
                 <motion.div
@@ -314,6 +327,11 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
           )}
         </div>
       </div>
+
+      <MilestonesModal
+        isOpen={isMilestonesModalOpen}
+        onClose={() => setIsMilestonesModalOpen(false)}
+      />
     </section>
   )
 }

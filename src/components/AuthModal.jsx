@@ -249,7 +249,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
                     setLoginHandle(e.target.value)
                     setLoginError('')
                   }}
-                  placeholder="아이디를 입력하세요"
+                  placeholder=""
                   className="glass w-full rounded-xl px-3.5 py-2.5 text-xs text-fg focus:border-pink/50 focus:outline-none"
                 />
               </div>
@@ -266,7 +266,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
                     setLoginPassword(e.target.value)
                     setLoginError('')
                   }}
-                  placeholder="학번을 입력하세요"
+                  placeholder=""
                   className="glass w-full rounded-xl px-3.5 py-2.5 text-xs text-fg focus:border-pink/50 focus:outline-none"
                 />
               </div>
@@ -374,7 +374,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
                   required
                   value={newMember.name}
                   onChange={(e) => setNewMember({ ...newMember, name: e.target.value })}
-                  placeholder="예: 홍길동"
+                  placeholder=""
                   className="glass w-full rounded-xl px-3 py-2 text-xs text-fg focus:border-pink/50 focus:outline-none"
                 />
               </div>
@@ -387,7 +387,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
                   required
                   value={newMember.handle}
                   onChange={(e) => setNewMember({ ...newMember, handle: e.target.value.toLowerCase().trim() })}
-                  placeholder="아이디를 입력하세요"
+                  placeholder=""
                   className="glass w-full rounded-xl px-3 py-2 text-xs text-fg focus:border-pink/50 focus:outline-none"
                 />
               </div>
@@ -404,7 +404,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
                   required
                   value={newMember.password}
                   onChange={(e) => setNewMember({ ...newMember, password: e.target.value })}
-                  placeholder="학번을 입력하세요"
+                  placeholder=""
                   className="glass w-full rounded-xl px-3 py-2 text-xs text-fg focus:border-pink/50 focus:outline-none"
                 />
               </div>
@@ -417,7 +417,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
                   required
                   value={newMember.passwordConfirm}
                   onChange={(e) => setNewMember({ ...newMember, passwordConfirm: e.target.value })}
-                  placeholder="동일하게 재입력"
+                  placeholder=""
                   className="glass w-full rounded-xl px-3 py-2 text-xs text-fg focus:border-pink/50 focus:outline-none"
                 />
               </div>
@@ -431,7 +431,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
                 type="text"
                 value={newMember.major}
                 onChange={(e) => setNewMember({ ...newMember, major: e.target.value })}
-                placeholder="예: 컴퓨터학부"
+                placeholder=""
                 className="glass w-full rounded-xl px-3 py-2 text-xs text-fg focus:border-pink/50 focus:outline-none"
               />
             </div>
@@ -472,7 +472,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
 
             <div>
               <label className="block font-mono text-[10px] uppercase text-muted mb-1">
-                Microsoft Learn Contributor ID
+                MS Learn Contributor ID
               </label>
               <input
                 type="text"
