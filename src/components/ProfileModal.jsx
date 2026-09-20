@@ -1,3 +1,4 @@
+import Modal from './ui/Modal.jsx'
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Camera, Edit3, ExternalLink, Minus, Plus, Save, Sparkles, Trash2, Upload, User, ShieldCheck, X } from 'lucide-react'
@@ -127,7 +128,7 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <Modal>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -140,7 +141,7 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="relative w-full max-w-lg rounded-3xl border border-line bg-surface p-7 shadow-2xl"
+        className="modal-panel relative w-full max-w-lg rounded-3xl border border-line bg-surface p-7 shadow-2xl"
       >
         <div className="flex items-center justify-between border-b border-line pb-4">
           <div className="flex items-center gap-2">
@@ -167,7 +168,7 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} noValidate className="mt-5 space-y-4 max-h-[460px] overflow-y-auto pr-1">
+        <form onSubmit={handleSubmit} noValidate className="mt-5 space-y-4 pr-1">
           {/* Clicks count adjustment box */}
           <div className="rounded-2xl border border-pink/30 bg-pink/[0.06] p-4">
             <div className="flex items-center justify-between gap-3">
@@ -423,7 +424,7 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
           </div>
         </form>
       </motion.div>
-    </div>
+    </Modal>
   )
 }
 

@@ -1,3 +1,4 @@
+import Modal from './ui/Modal.jsx'
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -9,6 +10,7 @@ import {
   Flame,
   Gift,
   Plus,
+  Pencil,
   ShieldCheck,
   Sparkles,
   Trash2,
@@ -31,6 +33,9 @@ export default function Missions({ onOpenAuth }) {
   const [currentUser, setCurrentUser] = useState(storageService.getCurrentUser())
   const [isAdmin, setIsAdmin] = useState(storageService.isAdmin())
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+
+  const [editingId, setEditingId] = useState(null)
+  const [saveError, setSaveError] = useState('')
 
   // 새 미션 폼
   const [formData, setFormData] = useState({
@@ -67,26 +72,37 @@ export default function Missions({ onOpenAuth }) {
     }
   }
 
-  const handleCreateMission = (e) => {
-    e.preventDefault()
-    if (!formData.title || !formData.desc) return
-
-    storageService.addMission({
-      title: formData.title,
-      desc: formData.desc,
-      reward: formData.reward || '동아리 포인트',
-      category: formData.category,
-      deadline: formData.deadline || '2026-10-31',
-    })
-
+  const openEditor = (mission = null) => {
+    setEditingId(mission?.id ?? null)
+    setSaveError('')
     setFormData({
-      title: '',
-      desc: '',
-      reward: '',
-      category: 'weekly',
-      deadline: '',
+      title: mission?.title ?? '', desc: mission?.desc ?? '',
+      reward: mission?.reward ?? '', category: mission?.category ?? 'weekly',
+      deadline: mission?.deadline ?? '',
     })
-    setIsAddModalOpen(false)
+    setIsAddModalOpen(true)
+  }
+
+  const handleSaveMission = (e) => {
+    e.preventDefault()
+    if (!storageService.isAdmin()) {
+      setSaveError('공지사항을 수정할 권한이 없습니다.')
+      return
+    }
+    if (!formData.title.trim() || !formData.desc.trim()) {
+      setSaveError('제목과 상세 내용을 입력해주세요.')
+      return
+    }
+    try {
+      const values = { ...formData, title: formData.title.trim(), desc: formData.desc.trim() }
+      if (editingId) {
+        const { title, desc, reward, deadline } = values
+        storageService.updateMission(editingId, { title, desc, reward, deadline })
+      } else storageService.addMission(values)
+      setIsAddModalOpen(false)
+    } catch (error) {
+      setSaveError(error.message || '저장하지 못했습니다. 다시 시도해주세요.')
+    }
   }
 
   return (
@@ -107,7 +123,7 @@ export default function Missions({ onOpenAuth }) {
                 관리자 모드 활성
               </span>
               <button
-                onClick={() => setIsAddModalOpen(true)}
+                onClick={() => openEditor()}
                 className="inline-flex items-center gap-1.5 rounded-full bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))] px-4 py-2 text-xs font-bold text-bg transition-transform hover:scale-105"
               >
                 <Plus className="h-4 w-4" />
@@ -152,13 +168,22 @@ export default function Missions({ onOpenAuth }) {
                     </div>
 
                     {isAdmin && (
-                      <button
-                        onClick={() => handleDeleteMission(m.id)}
-                        title="공지사항 삭제"
-                        className="p-1 text-muted hover:text-pink transition-colors"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => openEditor(m)}
+                          title="공지사항 수정"
+                          className="p-1 text-muted hover:text-mint transition-colors"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteMission(m.id)}
+                          title="공지사항 삭제"
+                          className="p-1 text-muted hover:text-pink transition-colors"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                     )}
                   </div>
 
@@ -168,7 +193,7 @@ export default function Missions({ onOpenAuth }) {
                   </h3>
 
                   {/* Description */}
-                  <p className="mt-2.5 text-xs leading-relaxed text-muted sm:text-sm">
+                  <p className="mt-2.5 whitespace-pre-wrap text-xs leading-relaxed text-muted sm:text-sm">
                     {m.desc}
                   </p>
 
@@ -225,7 +250,7 @@ export default function Missions({ onOpenAuth }) {
       {/* 새 미션 공지 등록 모달 (관리자용) */}
       <AnimatePresence>
         {isAddModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <Modal>
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -238,12 +263,12 @@ export default function Missions({ onOpenAuth }) {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-lg rounded-3xl border border-line bg-surface p-7 shadow-2xl"
+              className="modal-panel relative w-full max-w-lg rounded-3xl border border-line bg-surface p-7 shadow-2xl"
             >
               <div className="flex items-center justify-between border-b border-line pb-4">
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="h-5 w-5 text-pink" />
-                  <h3 className="font-display text-xl font-bold text-fg">새 공지 등록</h3>
+                  <h3 className="font-display text-xl font-bold text-fg">{editingId ? '공지사항 수정' : '새 공지 등록'}</h3>
                 </div>
                 <button
                   onClick={() => setIsAddModalOpen(false)}
@@ -253,7 +278,8 @@ export default function Missions({ onOpenAuth }) {
                 </button>
               </div>
 
-              <form onSubmit={handleCreateMission} className="mt-5 space-y-4">
+              {saveError && <p role="alert" className="mt-4 text-sm text-pink">{saveError}</p>}
+              <form onSubmit={handleSaveMission} className="mt-5 space-y-4">
                 <div>
                   <label className="block font-mono text-[11px] uppercase tracking-wider text-muted mb-1.5">
                     공지 제목 *
@@ -319,12 +345,12 @@ export default function Missions({ onOpenAuth }) {
                     type="submit"
                     className="rounded-xl bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))] px-5 py-2.5 text-xs font-bold text-bg hover:opacity-90"
                   >
-                    공지 등록하기
+                    {editingId ? '변경 내용 저장' : '공지 등록하기'}
                   </button>
                 </div>
               </form>
             </motion.div>
-          </div>
+          </Modal>
         )}
       </AnimatePresence>
     </section>

@@ -1138,8 +1138,14 @@ export const storageService = {
   },
 
   updateMission(missionId, partial) {
+    if (!this.isAdmin()) throw new Error('공지사항을 수정할 권한이 없습니다.')
     const missions = this.getMissions()
-    const updated = missions.map((m) => (m.id === missionId ? { ...m, ...partial } : m))
+    if (!missions.some((m) => m.id === missionId)) throw new Error('공지사항을 찾을 수 없습니다.')
+    const changes = Object.fromEntries(
+      ['title', 'desc', 'reward', 'category', 'deadline']
+        .filter((key) => Object.hasOwn(partial, key)).map((key) => [key, partial[key]])
+    )
+    const updated = missions.map((m) => (m.id === missionId ? { ...m, ...changes } : m))
     localStorage.setItem(STORAGE_KEYS.MISSIONS, JSON.stringify(updated))
     notify()
   },

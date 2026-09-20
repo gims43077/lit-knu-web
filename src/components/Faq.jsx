@@ -1,3 +1,4 @@
+import Modal from './ui/Modal.jsx'
 import { useState, useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Plus, Trash2, Edit3, ShieldCheck, X, HelpCircle, CheckCircle2 } from 'lucide-react'
@@ -217,7 +218,7 @@ export default function Faq() {
       {/* FAQ 추가/수정 모달 */}
       <AnimatePresence>
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <Modal>
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -230,7 +231,7 @@ export default function Faq() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
               transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              className="relative w-full max-w-lg rounded-2xl border border-line bg-card/95 p-6 sm:p-7 shadow-2xl backdrop-blur-xl"
+              className="modal-panel relative w-full max-w-lg rounded-2xl border border-line bg-card/95 p-6 sm:p-7 shadow-2xl backdrop-blur-xl"
             >
               <div className="flex items-center justify-between border-b border-line pb-4 mb-5">
                 <div className="flex items-center gap-2.5">
@@ -301,7 +302,7 @@ export default function Faq() {
                 </div>
               </form>
             </motion.div>
-          </div>
+          </Modal>
         )}
       </AnimatePresence>
     </section>

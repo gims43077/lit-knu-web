@@ -31,6 +31,11 @@ export default function App() {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (reduce) return
     const lenis = new Lenis({ lerp: 0.09, smoothWheel: true, anchors: { offset: -90 } })
+    const handleScrollLock = (event) => {
+      if (event.detail) lenis.stop()
+      else lenis.start()
+    }
+    window.addEventListener('modal-scroll-lock', handleScrollLock)
     let id
     const raf = (t) => {
       lenis.raf(t)
@@ -39,6 +44,7 @@ export default function App() {
     id = requestAnimationFrame(raf)
     return () => {
       cancelAnimationFrame(id)
+      window.removeEventListener('modal-scroll-lock', handleScrollLock)
       lenis.destroy()
     }
   }, [])

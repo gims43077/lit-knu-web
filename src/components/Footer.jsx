@@ -83,7 +83,7 @@ export default function Footer() {
 
         <div className="mt-16 flex flex-col items-start justify-between gap-4 border-t border-line pt-6 font-mono text-[11px] uppercase tracking-[0.2em] text-muted sm:flex-row sm:items-center">
           <span>© {new Date().getFullYear()} LIT · Learn It, Teach</span>
-          <span>Designed & built with ♥ by LIT</span>
+          <span>LIT</span>
         </div>
       </div>
 
