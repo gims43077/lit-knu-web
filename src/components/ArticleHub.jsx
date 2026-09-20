@@ -304,23 +304,6 @@ export default function ArticleHub({ authorFilter, onClearAuthorFilter, onFilter
               />
             </div>
           </div>
-
-          {/* 태그 목록 필터 */}
-          <div className="mt-4 flex flex-wrap gap-1.5">
-            {allTags.slice(0, 10).map((t) => (
-              <button
-                key={t}
-                onClick={() => setSelectedTag(t)}
-                className={`rounded-lg px-2.5 py-1 font-mono text-[11px] transition-all ${
-                  selectedTag === t
-                    ? 'border border-mint/50 bg-mint/15 text-mint'
-                    : 'border border-line bg-white/[0.02] text-muted hover:text-fg hover:border-white/20'
-                }`}
-              >
-                #{t}
-              </button>
-            ))}
-          </div>
         </Reveal>
 
         {/* 2. 아티클 카드 그리드 */}

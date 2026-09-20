@@ -74,41 +74,21 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {MILESTONES.map((ml) => {
               const achieversCount = members.filter((m) => (m.clicks || 0) >= ml.count).length
-              const isFinal = ml.count === 250
-              const isHighlight = ml.count === 150 || ml.count === 200
 
               return (
                 <div
                   key={ml.count}
-                  className={`group relative flex items-center gap-3.5 rounded-2xl border p-4 transition-all duration-300 hover:scale-[1.01] ${
-                    isFinal
-                      ? 'border-amber/50 bg-gradient-to-br from-amber/15 via-amber/5 to-surface/80 hover:border-amber'
-                      : isHighlight
-                      ? 'border-violet/40 bg-surface/70 hover:border-violet/70 hover:bg-surface'
-                      : 'border-line bg-surface/50 hover:border-white/30 hover:bg-surface/80'
-                  }`}
+                  className="group relative flex items-center gap-3.5 rounded-2xl border border-line bg-surface/50 p-4 transition-all duration-300 hover:scale-[1.01] hover:border-white/30 hover:bg-surface/80"
                 >
                   {/* Icon badge */}
-                  <div
-                    className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border text-2xl transition-transform group-hover:scale-110 ${
-                      isFinal
-                        ? 'border-amber/40 bg-amber/20'
-                        : isHighlight
-                        ? 'border-violet/30 bg-violet/15'
-                        : 'border-white/10 bg-white/5'
-                    }`}
-                  >
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-2xl transition-transform group-hover:scale-110">
                     {ml.icon}
                   </div>
 
                   {/* Reward details */}
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
-                      <span
-                        className={`font-mono text-xs font-black tracking-wide ${
-                          isFinal ? 'text-amber' : 'text-mint'
-                        }`}
-                      >
+                      <span className="font-mono text-xs font-black tracking-wide text-mint">
                         {ml.count} 조회수
                       </span>
                       <span className="flex items-center gap-1 font-mono text-[11px] text-muted">
@@ -117,13 +97,7 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
                       </span>
                     </div>
 
-                    <h4
-                      className={`mt-1 font-display text-sm sm:text-base font-bold leading-snug tracking-tight ${
-                        isFinal
-                          ? 'text-amber font-black'
-                          : 'text-fg group-hover:text-white'
-                      }`}
-                    >
+                    <h4 className="mt-1 font-display text-sm sm:text-base font-bold leading-snug tracking-tight text-fg group-hover:text-white">
                       {ml.reward}
                     </h4>
                   </div>
@@ -157,35 +131,10 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
           </Reveal>
         )}
 
-        {/* 2. 컨트롤 바 (필터 탭 및 검색) */}
+        {/* 2. 컨트롤 바 (검색) */}
         <Reveal delay={0.15} className="mt-6">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-wrap gap-1.5">
-              {[
-                { id: 'all', label: '전체' },
-                { id: '250', label: '👑 250' },
-                { id: '200', label: '🍎 200+' },
-                { id: '150', label: '🌳 150+' },
-                { id: '100', label: '🪴 100+' },
-                { id: '50', label: '🌿 50+' },
-                { id: '30', label: '🌱 30+' },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all ${
-                    activeTab === tab.id
-                      ? 'bg-fg text-bg shadow-lg'
-                      : 'glass text-muted hover:text-fg hover:border-white/30'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-
-
-            <div className="relative w-full sm:w-64">
+          <div className="flex justify-end">
+            <div className="relative w-full sm:w-72">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted" />
               <input
                 type="text"
@@ -211,15 +160,6 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
               const isTop3 = rank <= 3
               const isFinished = (m.clicks || 0) >= 250
 
-              const rankGlow =
-                rank === 1
-                  ? 'border-amber/50 bg-amber/5'
-                  : rank === 2
-                  ? 'border-white/40 bg-white/5'
-                  : rank === 3
-                  ? 'border-pink/40 bg-pink/5'
-                  : 'border-line bg-surface/60'
-
               return (
                 <motion.div
                   key={m.handle}
@@ -227,7 +167,7 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: index * 0.04 }}
-                  className={`group relative overflow-hidden rounded-2xl border p-4 sm:p-5 transition-all hover:border-white/30 hover:bg-surface ${rankGlow}`}
+                  className="group relative overflow-hidden rounded-2xl border border-line bg-surface/60 p-4 sm:p-5 transition-all hover:border-white/30 hover:bg-surface"
                 >
                   <div className="flex flex-col">
                     {/* 1. 상단: 순위 & 프로필 정보 (좌측) + 실시간 클릭수 (우측) */}
