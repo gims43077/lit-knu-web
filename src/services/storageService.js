@@ -1301,11 +1301,18 @@ export const storageService = {
   },
 
   async updateMission(missionId, partial) {
+    if (!this.isAdmin()) throw new Error('공지사항을 수정할 권한이 없습니다.')
     const missions = this.getMissions()
+    if (!missions.some((m) => m.id === missionId)) throw new Error('공지사항을 찾을 수 없습니다.')
+    const changes = Object.fromEntries(
+      ['title', 'desc', 'reward', 'category', 'deadline']
+        .filter((key) => Object.hasOwn(partial, key))
+        .map((key) => [key, partial[key]])
+    )
     let target = null
     const updated = missions.map((m) => {
       if (m.id === missionId) {
-        target = { ...m, ...partial }
+        target = { ...m, ...changes }
         return target
       }
       return m

@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react'
+import { useScrollLock } from './ui/Modal.jsx'
 import { AnimatePresence, motion } from 'framer-motion'
 
 export default function Preloader({ onDone }) {
   const [show, setShow] = useState(true)
 
+  const [locked, setLocked] = useState(true)
+  useScrollLock(locked)
+
   useEffect(() => {
-    document.body.style.overflow = 'hidden'
     const t = setTimeout(() => setShow(false), 1700)
     return () => clearTimeout(t)
   }, [])
@@ -13,7 +16,7 @@ export default function Preloader({ onDone }) {
   return (
     <AnimatePresence
       onExitComplete={() => {
-        document.body.style.overflow = ''
+        setLocked(false)
         onDone?.()
       }}
     >

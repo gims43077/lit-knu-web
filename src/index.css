@@ -231,3 +231,14 @@
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }
+
+/* Native dialog scrolling must not chain to the page. */
+.modal-panel {
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+[data-modal-root] .overflow-y-auto { overscroll-behavior: contain; }
+[data-modal-root] > :first-child { touch-action: none; }
+

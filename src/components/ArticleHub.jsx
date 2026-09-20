@@ -1,3 +1,4 @@
+import Modal from './ui/Modal.jsx'
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -458,7 +459,7 @@ export default function ArticleHub({ authorFilter, onClearAuthorFilter, onFilter
       {/* 새 글 공유 모달 */}
       <AnimatePresence>
         {isModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <Modal>
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -471,7 +472,7 @@ export default function ArticleHub({ authorFilter, onClearAuthorFilter, onFilter
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-lg rounded-3xl border border-line bg-surface p-7 shadow-2xl"
+              className="modal-panel relative w-full max-w-lg rounded-3xl border border-line bg-surface p-7 shadow-2xl"
             >
               <div className="flex items-center justify-between border-b border-line pb-4">
                 <div className="flex items-center gap-2">
@@ -628,7 +629,7 @@ export default function ArticleHub({ authorFilter, onClearAuthorFilter, onFilter
                 </div>
               </form>
             </motion.div>
-          </div>
+          </Modal>
         )}
       </AnimatePresence>
     </section>
