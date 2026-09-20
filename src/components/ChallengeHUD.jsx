@@ -221,10 +221,6 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
         ) : (
           <Reveal delay={0.25} className="mt-8">
             <div className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-surface/75 p-4.5 sm:p-7 md:p-9 backdrop-blur-xl shadow-2xl transition-colors hover:border-white/[0.14]">
-              {/* Inner subtle ambient glow */}
-              <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-pink/10 blur-[120px]" />
-              <div className="pointer-events-none absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-mint/8 blur-[120px]" />
-
               <div className="relative flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
                 {/* User Info & Status */}
                 <div className="flex flex-1 items-start gap-4 sm:gap-6">
@@ -356,8 +352,8 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
                     animate={{ width: `${progressPercent}%` }}
                     transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
                   />
-                  {/* Milestones pin indicators */}
-                  {MILESTONES.map((ml) => {
+                  {/* Milestones pin indicators (250은 바의 끝점이므로 중간 분할 핀에서 제외하여 모서리 잘림 방지) */}
+                  {MILESTONES.filter((ml) => ml.count < 250).map((ml) => {
                     const pos = (ml.count / 250) * 100
                     const achieved = myClicks >= ml.count
                     return (
@@ -405,8 +401,8 @@ export default function ChallengeHUD({ onOpenProfile, onOpenAuth, onFilterAuthor
                   })}
                 </div>
 
-                {/* Contributor ID & My Articles Action Bar (초간결 & 세련된 반응형 디자인) */}
-                <div className="mt-6 flex flex-col gap-3.5 lg:flex-row lg:items-center lg:justify-between rounded-2xl bg-white/[0.03] border border-white/10 p-3.5 sm:p-4 md:px-5 md:py-4 backdrop-blur-md transition-all hover:border-white/20">
+                {/* Contributor ID & My Articles Action Bar (글로우 제거 및 깔끔한 다크 글래스 박스) */}
+                <div className="mt-6 flex flex-col gap-3.5 lg:flex-row lg:items-center lg:justify-between rounded-2xl bg-surface/60 border border-line p-3.5 sm:p-4 md:px-5 md:py-4 transition-all hover:border-white/20">
                   <div
                     onClick={handleCopyLink}
                     role="button"

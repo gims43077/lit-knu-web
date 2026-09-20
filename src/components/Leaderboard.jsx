@@ -166,12 +166,12 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: index * 0.04 }}
-                  className="group relative overflow-hidden rounded-2xl border border-line bg-surface/60 p-4 sm:p-5 transition-all hover:border-white/30 hover:bg-surface"
+                  className="group relative overflow-hidden rounded-2xl sm:rounded-3xl border border-line bg-surface/60 p-5 sm:p-6 transition-all hover:border-white/30 hover:bg-surface"
                 >
                   <div className="flex flex-col">
                     {/* 1. 상단: 순위 & 프로필 정보 (좌측) + 실시간 클릭수 (우측) */}
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-3 sm:items-center">
+                      <div className="flex items-start gap-3 sm:items-center sm:gap-4 min-w-0 flex-1">
                         {/* Rank badge */}
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-display text-lg font-black tracking-tight sm:h-11 sm:w-11 sm:text-xl">
                           <span className="text-muted font-mono text-sm sm:text-base font-bold">#{rank}</span>
@@ -181,22 +181,22 @@ export default function Leaderboard({ onFilterAuthor, onSelectMember, onEditMemb
                         <img
                           src={m.avatar}
                           alt={m.name}
-                          className="h-11 w-11 sm:h-12 sm:w-12 shrink-0 rounded-xl border border-line object-cover"
+                          className="h-11 w-11 sm:h-12 sm:w-12 shrink-0 rounded-xl border border-line object-cover mt-0.5 sm:mt-0"
                         />
 
-                        {/* Name & Major (이름은 100% 온전히 보이고 절대 잘리지 않음) */}
+                        {/* Name & Major (모바일에서도 소개가 잘리지 않고 온전히 표시) */}
                         <div className="min-w-0 flex-1">
-                          <div className="font-display text-base sm:text-lg font-bold text-fg leading-tight whitespace-nowrap">
+                          <div className="font-display text-base sm:text-lg font-bold text-fg leading-tight">
                             {m.name}
                           </div>
-                          <p className="mt-1 text-xs text-muted truncate">
+                          <p className="mt-1 text-xs leading-relaxed text-muted line-clamp-2 sm:line-clamp-1 break-words">
                             {[m.role, m.major].filter(Boolean).join(' · ')}
                           </p>
                         </div>
                       </div>
 
                       {/* Clicks & Percent (상단 우측 정렬) */}
-                      <div className="text-right shrink-0">
+                      <div className="text-right shrink-0 pt-0.5 sm:pt-0">
                         <div className="flex items-baseline justify-end gap-1 sm:gap-1.5">
                           <span className="font-sans text-xl sm:text-3xl font-black text-fg">
                             {m.clicks || 0}

@@ -2,11 +2,11 @@
 // LocalStorage 기반 즉시 반응형 스토어 + Pub/Sub 이벤트 버스 탑재
 
 const STORAGE_KEYS = {
-  MEMBERS: 'lit_msa_members_v3',
-  ARTICLES: 'lit_msa_articles_v1',
-  MISSIONS: 'lit_msa_missions_v1',
-  CURRENT_USER: 'lit_msa_current_user_v2',
-  IS_ADMIN: 'lit_msa_is_admin_v2',
+  MEMBERS: 'lit_msa_members_prod',
+  ARTICLES: 'lit_msa_articles_prod',
+  MISSIONS: 'lit_msa_missions_prod',
+  CURRENT_USER: 'lit_msa_current_user_prod',
+  IS_ADMIN: 'lit_msa_is_admin_prod',
   FAQS: 'lit_msa_faqs_v1',
 }
 
@@ -90,7 +90,7 @@ export const ADMIN_MEMBER = {
     github: 'https://github.com/LITofficial',
   },
   bio: '경북대학교 IT 기술 발표 동아리 LIT 공식 운영진 계정입니다.',
-  password: '1234',
+  password: 'lit2026!@',
   avatar: AVATAR_PRESETS[2], // LIT Violet (#8B7BFF)
   badges: ['30 달성', '50 달성', '100 달성', '150 달성', '200 달성', '250 달성'],
   isAdmin: true,
@@ -219,252 +219,13 @@ export function generateContributorUrl(originalUrl, contributorId) {
   return res.isValid ? res.url : ''
 }
 
-// 초기 부원 목업 데이터 (LIT 부원 샘플)
-const DEFAULT_MEMBERS = [
-  {
-    id: 'm1',
-    handle: 'shlee',
-    name: '이승현',
-    role: 'LIT 회장 / MSA',
-    major: '컴퓨터학부 21학번',
-    contributorId: 'studentamb_482865',
-    clicks: 184,
-    target: 250,
-    msLink: 'https://learn.microsoft.com/?wt.mc_id=studentamb_482865',
-    socials: {
-      linkedin: 'https://linkedin.com/in/lit-knu',
-      blog: 'https://velog.io/@lit-official',
-      github: 'https://github.com/LITofficial',
-    },
-    bio: '클라우드와 AI 에이전트 아키텍처에 관심이 많습니다. 함께 250 달성해요!',
-    password: '1234',
-    avatar: AVATAR_PRESETS[0], // LIT Mint (#5EF0D6)
-    badges: ['30 달성', '50 달성', '100 달성', '150 달성'],
-  },
-  {
-    id: 'm2',
-    handle: 'minji_kim',
-    name: '김민지',
-    role: 'LIT 부원 / MSA',
-    major: '컴퓨터학부 22학번',
-    contributorId: 'studentamb_482866',
-    clicks: 250,
-    target: 250,
-    msLink: 'https://learn.microsoft.com/?wt.mc_id=studentamb_482866',
-    socials: {
-      linkedin: 'https://linkedin.com',
-      blog: 'https://velog.io',
-      github: 'https://github.com',
-    },
-    bio: 'Azure OpenAI와 LangChain으로 RAG 챗봇 구축하기 시리즈를 연재 중입니다.',
-    avatar: AVATAR_PRESETS[1], // LIT Pink (#FF6FB1)
-    badges: ['30 달성', '50 달성', '100 달성', '150 달성', '200 달성', '250 달성'],
-  },
-  {
-    id: 'm3',
-    handle: 'junho_park',
-    name: '박준호',
-    role: 'LIT 기술팀장',
-    major: '전자공학부 20학번',
-    contributorId: 'studentamb_482867',
-    clicks: 132,
-    target: 250,
-    msLink: 'https://learn.microsoft.com/?wt.mc_id=studentamb_482867',
-    socials: {
-      linkedin: 'https://linkedin.com',
-      blog: 'https://velog.io',
-      github: 'https://github.com',
-    },
-    bio: 'Kubernetes Self-Healing 및 클라우드 네이티브 아키텍처 스터디 리드.',
-    avatar: AVATAR_PRESETS[4], // Sky Blue (#38BDF8)
-    badges: ['30 달성', '50 달성', '100 달성'],
-  },
-  {
-    id: 'm4',
-    handle: 'sujin_choi',
-    name: '최수진',
-    role: 'LIT 기획팀장',
-    major: '인공지능전공 23학번',
-    contributorId: 'studentamb_482868',
-    clicks: 86,
-    target: 250,
-    msLink: 'https://learn.microsoft.com/?wt.mc_id=studentamb_482868',
-    socials: {
-      linkedin: 'https://linkedin.com',
-      blog: 'https://velog.io',
-      github: 'https://github.com',
-    },
-    bio: 'GitHub Copilot과 개발 생산성 도구 활용법을 포스팅하고 있어요.',
-    avatar: AVATAR_PRESETS[3], // Amber (#FFD166)
-    badges: ['30 달성', '50 달성'],
-  },
-  {
-    id: 'm5',
-    handle: 'dohyun_lee',
-    name: '이도현',
-    role: 'LIT 부원',
-    major: '컴퓨터학부 23학번',
-    contributorId: 'studentamb_482869',
-    clicks: 64,
-    target: 250,
-    msLink: 'https://learn.microsoft.com/?wt.mc_id=studentamb_482869',
-    socials: {
-      linkedin: 'https://linkedin.com',
-      blog: 'https://velog.io',
-      github: 'https://github.com',
-    },
-    bio: 'Entra ID 기반 클라우드 보안과 제로 트러스트 실습 중!',
-    avatar: AVATAR_PRESETS[5], // Indigo (#6366F1)
-    badges: ['30 달성', '50 달성'],
-  },
-  {
-    id: 'm6',
-    handle: 'chaewon_yoon',
-    name: '윤채원',
-    role: 'LIT 부원',
-    major: '소프트웨어학과 24학번',
-    contributorId: 'studentamb_482870',
-    clicks: 42,
-    target: 250,
-    msLink: 'https://learn.microsoft.com/?wt.mc_id=studentamb_482870',
-    socials: {
-      linkedin: 'https://linkedin.com',
-      blog: 'https://velog.io',
-      github: 'https://github.com',
-    },
-    bio: '새싹 개발자의 MS Learn 첫 달성 일기. 링크 클릭 한 번씩 부탁드려요!',
-    avatar: AVATAR_PRESETS[7], // Coral (#F43F5E)
-    badges: ['30 달성'],
-  },
-  {
-    id: 'm7',
-    handle: 'taeyang_jung',
-    name: '정태양',
-    role: 'LIT 부원',
-    major: '글로벌소프트웨어융합전공 22학번',
-    contributorId: 'studentamb_482871',
-    clicks: 218,
-    target: 250,
-    msLink: 'https://learn.microsoft.com/?wt.mc_id=studentamb_482871',
-    socials: {
-      linkedin: 'https://linkedin.com',
-      blog: 'https://velog.io',
-      github: 'https://github.com',
-    },
-    bio: 'Vector Search와 Semantic Kernel로 비정형 데이터 분석하기.',
-    avatar: AVATAR_PRESETS[6], // Emerald (#10B981)
-    badges: ['30 달성', '50 달성', '100 달성', '150 달성', '200 달성'],
-  },
-  {
-    id: 'm8',
-    handle: 'yejin_han',
-    name: '한예진',
-    role: 'LIT 홍보팀',
-    major: '경영학부 21학번',
-    contributorId: 'studentamb_482872',
-    clicks: 28,
-    target: 250,
-    msLink: 'https://learn.microsoft.com/?wt.mc_id=studentamb_482872',
-    socials: {
-      linkedin: 'https://linkedin.com',
-      blog: 'https://velog.io',
-      github: 'https://github.com',
-    },
-    bio: '비전공자의 테크 에반젤리스트 도전기! 30 클릭 돌파 직전!',
-    avatar: AVATAR_PRESETS[2], // LIT Violet (#8B7BFF)
-    badges: [],
-  },
-]
+// 부원 데이터 초기값 (실제 운영용)
+const DEFAULT_MEMBERS = []
 
-// 초기 아티클 목업 데이터 (부원들이 작성한 LinkedIn/블로그 글)
-const DEFAULT_ARTICLES = [
-  {
-    id: 'art-1',
-    title: '대학생이 Azure OpenAI와 LangChain으로 3일 만에 RAG 구축해본 후기',
-    excerpt: 'LIT 동아리 6월 Meetup에서 발표한 RAG 파이프라인 실습 내용과 Microsoft Learn AI 경로 학습 및 달성 과정을 정리했습니다. 제 MSA 챌린지 링크도 함께 확인해 보세요!',
-    url: 'https://linkedin.com/posts/example-rag-article',
-    learnUrl: 'https://learn.microsoft.com/training/modules/get-started-with-ai-in-azure/?wt.mc_id=studentamb_517841',
-    platform: 'linkedin',
-    authorHandle: 'minji_kim',
-    authorName: '김민지',
-    authorAvatar: AVATAR_PRESETS[1], // LIT Pink (#FF6FB1)
-    tags: ['Azure AI', 'RAG', 'LangChain', 'Meetup'],
-    likes: 42,
-    createdAt: '2026-09-15',
-  },
-  {
-    id: 'art-2',
-    title: 'Kubernetes 클러스터 Self-Healing 구조 파헤치기 (Feat. AKS)',
-    excerpt: 'Pod가 죽었을 때 쿠버네티스는 어떻게 이를 감지하고 스스로 복구할까요? 노드 장애 시나리오와 함께 Azure Kubernetes Service 실습 가이드를 공유합니다.',
-    url: 'https://velog.io/@junho/k8s-self-healing',
-    learnUrl: 'https://learn.microsoft.com/training/modules/intro-to-kubernetes-on-azure/?wt.mc_id=studentamb_507003',
-    platform: 'velog',
-    authorHandle: 'junho_park',
-    authorName: '박준호',
-    authorAvatar: AVATAR_PRESETS[4], // Sky Blue (#38BDF8)
-    tags: ['K8s', 'DevOps', 'AKS', 'CloudNative'],
-    likes: 29,
-    createdAt: '2026-09-12',
-  },
-  {
-    id: 'art-3',
-    title: 'Microsoft Learn Student Ambassadors(MSA) 250 클릭 챌린지 시작 가이드',
-    excerpt: 'LIT 동아리 전 부원이 함께 도전하는 MSA 챌린지! 링크 생성 방법, LinkedIn 배포 전략, 그리고 중간 체크포인트 리워드 안내까지 총정리했습니다.',
-    url: 'https://linkedin.com/posts/example-msa-guide',
-    learnUrl: 'https://learn.microsoft.com/training/modules/get-started-with-ai-in-azure/?wt.mc_id=studentamb_482865',
-    platform: 'linkedin',
-    authorHandle: 'shlee',
-    authorName: '이승현',
-    authorAvatar: AVATAR_PRESETS[0], // LIT Mint (#5EF0D6)
-    tags: ['MSA챌린지', 'MSA', 'TechCommunity', 'LIT'],
-    likes: 58,
-    createdAt: '2026-09-18',
-  },
-  {
-    id: 'art-4',
-    title: 'Vector Search로 텍스트 의미 검색 구현하기: Azure AI Search 심층 분석',
-    excerpt: '단순 키워드 검색의 한계를 넘어 고차원 임베딩 벡터를 활용한 검색 엔진 구축 경험을 나눕니다. 코사인 유사도와 하이브리드 검색 비교.',
-    url: 'https://velog.io/@taeyang/vector-search-ai',
-    learnUrl: 'https://learn.microsoft.com/training/modules/get-started-azure-ai-search/?wt.mc_id=studentamb_522075',
-    platform: 'velog',
-    authorHandle: 'taeyang_jung',
-    authorName: '정태양',
-    authorAvatar: AVATAR_PRESETS[6], // Emerald (#10B981)
-    tags: ['VectorSearch', 'Embedding', 'AzureSearch'],
-    likes: 35,
-    createdAt: '2026-09-10',
-  },
-  {
-    id: 'art-5',
-    title: '비전공자가 3주 만에 클라우드 기초(AZ-900) 정복한 공부법과 MS Learn 추천 경로',
-    excerpt: '코딩을 몰라도 클라우드를 이해할 수 있을까요? 개념부터 차근차근 시작한 비전공자의 솔직한 학습 후기와 무료 학습 모듈 추천.',
-    url: 'https://velog.io/@yejin/az-900-cloud-basics',
-    learnUrl: 'https://learn.microsoft.com/training/paths/microsoft-azure-fundamentals-describe-cloud-concepts/?wt.mc_id=studentamb_544005',
-    platform: 'velog',
-    authorHandle: 'yejin_han',
-    authorName: '한예진',
-    authorAvatar: AVATAR_PRESETS[2], // LIT Violet (#8B7BFF)
-    tags: ['AZ900', 'MSLearn', '비전공자', '스터디'],
-    likes: 24,
-    createdAt: '2026-09-08',
-  },
-  {
-    id: 'art-6',
-    title: '개발자 생산성을 2배로 올리는 GitHub Copilot 프롬프트 엔지니어링 팁 5가지',
-    excerpt: '단순한 자동 완성을 넘어 컨텍스트 파일 주입, 테스트 코드 작성, 리팩토링까지 스마트하게 코파일럿을 부려먹는 실전 팁을 정리했습니다.',
-    url: 'https://linkedin.com/posts/example-copilot-tips',
-    learnUrl: 'https://learn.microsoft.com/training/modules/get-started-github-copilot/?wt.mc_id=studentamb_539571',
-    platform: 'linkedin',
-    authorHandle: 'sujin_choi',
-    authorName: '최수진',
-    authorAvatar: AVATAR_PRESETS[3], // Amber (#FFD166)
-    tags: ['GitHubCopilot', 'Productivity', 'AI개발'],
-    likes: 31,
-    createdAt: '2026-09-14',
-  },
-]
+// 아티클 데이터 초기값 (실제 운영용)
+const DEFAULT_ARTICLES = []
 
-// 관리자 미션 공지 목업 데이터
+// 공지사항 미션 초기 템플릿 (참여 내역 초기화)
 const DEFAULT_MISSIONS = [
   {
     id: 'mis-1',
@@ -472,7 +233,7 @@ const DEFAULT_MISSIONS = [
     desc: 'Microsoft Learn에서 이번 주 학습한 모듈이나 세션 주제를 바탕으로 LinkedIn에 글을 작성하고, 본문에 본인의 챌린지 링크를 연결한 후 LIT 피드에 등록하세요.',
     reward: '☕ 스타벅스 커피 쿠폰 추첨 + 동아리 50P',
     deadline: '2026-09-27',
-    completedMemberHandles: ['shlee', 'minji_kim', 'junho_park', 'taeyang_jung'],
+    completedMemberHandles: [],
     active: true,
   },
   {
@@ -481,7 +242,7 @@ const DEFAULT_MISSIONS = [
     desc: 'LIT의 힘은 서로 배우고 가르치는(Learn It, Teach) 커뮤니티에서 나옵니다. LIT 피드에서 다른 부원들의 글을 읽고 LinkedIn/블로그에 피드백을 남겨주세요.',
     reward: '⭐ 커뮤니티 뱃지 + 동아리 30P',
     deadline: '2026-09-30',
-    completedMemberHandles: ['shlee', 'sujin_choi', 'minji_kim'],
+    completedMemberHandles: [],
     active: true,
   },
   {
@@ -490,7 +251,7 @@ const DEFAULT_MISSIONS = [
     desc: '학과 단톡방, SNS, 개발 커뮤니티에 내가 작성한 유익한 기술 요약글을 공유하여 주말 동안 클릭수를 20 이상 끌어올려 보세요!',
     reward: '🚀 LIT 한정판 스티커 팩 + 100달성 가속 보너스',
     deadline: '2026-09-22',
-    completedMemberHandles: ['minji_kim', 'taeyang_jung'],
+    completedMemberHandles: [],
     active: true,
   },
   {
@@ -499,7 +260,7 @@ const DEFAULT_MISSIONS = [
     desc: '누적 100 클릭을 달성한 부원은 운영진에게 알려주시면 GH-900 또는 AI-900 공식 시험 응시권(100% 지원)을 지급해 드립니다.',
     reward: '🎓 Microsoft 공인 자격증 시험 바우처 전액 지원',
     deadline: '2026-10-31',
-    completedMemberHandles: ['shlee', 'minji_kim', 'junho_park', 'taeyang_jung'],
+    completedMemberHandles: [],
     active: true,
   },
 ]
@@ -565,59 +326,43 @@ export async function syncFromCloud() {
     if (membersRes && membersRes.ok) {
       const json = await membersRes.json()
       const cloudMembers = Array.isArray(json.data) ? json.data : Array.isArray(json.members) ? json.members : []
-      if (cloudMembers.length > 0) {
-        const cleanedMembers = cloudMembers.map((m) => {
-          const rawClicks = Number(m.clicks)
-          const clicks = isNaN(rawClicks) ? 0 : Math.max(0, rawClicks)
-          const contributorId = m.contributorId || extractContributorId(m.msLink) || 'studentamb_482865'
-          const badges = MILESTONES.filter((ml) => clicks >= ml.count).map((ml) => ml.badge)
-          let avatar = m.avatar
-          if (!avatar || avatar.includes('unsplash.com') || avatar.includes('dicebear')) {
-            const defaultMatch = DEFAULT_MEMBERS.find((dm) => dm.handle === m.handle)
-            if (defaultMatch) {
-              avatar = defaultMatch.avatar
-            } else {
-              const hash = (m.handle || '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)
-              avatar = AVATAR_PRESETS[Math.abs(hash) % AVATAR_PRESETS.length]
-            }
-          }
-          return {
-            ...m,
-            handle: String(m.handle || m.id).toLowerCase(),
-            clicks,
-            avatar,
-            role: (m.role || 'LIT 부원').replace(/MLSA/g, 'MSA'),
-            contributorId,
-            certifications: m.certifications || '',
-            msLink: m.msLink || formatContributorLink(contributorId),
-            password: m.password || '1234',
-            badges,
-          }
-        })
+      const cleanedMembers = cloudMembers.map((m) => {
+        const rawClicks = Number(m.clicks)
+        const clicks = isNaN(rawClicks) ? 0 : Math.max(0, rawClicks)
+        const contributorId = m.contributorId || extractContributorId(m.msLink) || 'studentamb_482865'
+        const badges = MILESTONES.filter((ml) => clicks >= ml.count).map((ml) => ml.badge)
+        let avatar = m.avatar
+        if (!avatar || avatar.includes('unsplash.com') || avatar.includes('dicebear')) {
+          const hash = (m.handle || '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)
+          avatar = AVATAR_PRESETS[Math.abs(hash) % AVATAR_PRESETS.length]
+        }
+        return {
+          ...m,
+          handle: String(m.handle || m.id).toLowerCase(),
+          clicks,
+          avatar,
+          role: (m.role || 'LIT 부원').replace(/MLSA/g, 'MSA'),
+          contributorId,
+          certifications: m.certifications || '',
+          msLink: m.msLink || formatContributorLink(contributorId),
+          password: m.password || '',
+          badges,
+        }
+      })
 
-        const currentLocalStr = localStorage.getItem(STORAGE_KEYS.MEMBERS)
-        const newMembersStr = JSON.stringify(cleanedMembers)
-        if (currentLocalStr !== newMembersStr) {
-          localStorage.setItem(STORAGE_KEYS.MEMBERS, newMembersStr)
+      const currentLocalStr = localStorage.getItem(STORAGE_KEYS.MEMBERS)
+      const newMembersStr = JSON.stringify(cleanedMembers)
+      if (currentLocalStr !== newMembersStr) {
+        localStorage.setItem(STORAGE_KEYS.MEMBERS, newMembersStr)
+        didChange = true
+      }
+
+      const currentHandle = localStorage.getItem(STORAGE_KEYS.CURRENT_USER)
+      if (currentHandle && currentHandle.toUpperCase() !== 'LIT') {
+        const stillExists = cleanedMembers.some((cm) => cm.handle.toLowerCase() === currentHandle.toLowerCase())
+        if (!stillExists) {
+          localStorage.removeItem(STORAGE_KEYS.CURRENT_USER)
           didChange = true
-        }
-
-        const currentHandle = localStorage.getItem(STORAGE_KEYS.CURRENT_USER)
-        if (currentHandle && currentHandle.toUpperCase() !== 'LIT') {
-          const stillExists = cleanedMembers.some((cm) => cm.handle.toLowerCase() === currentHandle.toLowerCase())
-          if (!stillExists) {
-            localStorage.removeItem(STORAGE_KEYS.CURRENT_USER)
-            didChange = true
-          }
-        }
-      } else {
-        const local = storageService.getMembers()
-        if (local.length > 0) {
-          fetch('/api/sync', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ members: local }),
-          }).catch(() => {})
         }
       }
     }
@@ -626,32 +371,18 @@ export async function syncFromCloud() {
     if (articlesRes && articlesRes.ok) {
       const json = await articlesRes.json()
       const cloudArticles = Array.isArray(json.data) ? json.data : []
-      if (cloudArticles.length > 0) {
-        const cleaned = cloudArticles.map((a) => ({
-          id: a.id, title: a.title || '', excerpt: a.excerpt || '',
-          url: a.url || '', learnUrl: a.learnUrl || '', platform: a.platform || 'linkedin',
-          authorHandle: a.authorHandle || '', authorName: a.authorName || '',
-          authorAvatar: a.authorAvatar || '', tags: a.tags || [], likes: a.likes || 0,
-          createdAt: a.createdAt || '',
-        }))
-        const localStr = localStorage.getItem(STORAGE_KEYS.ARTICLES)
-        const newStr = JSON.stringify(cleaned)
-        if (localStr !== newStr) {
-          localStorage.setItem(STORAGE_KEYS.ARTICLES, newStr)
-          didChange = true
-        }
-      } else {
-        // 클라우드에 글이 없으면 기본 데이터를 시딩
-        const localArticles = storageService.getArticles()
-        if (localArticles.length > 0) {
-          for (const art of localArticles) {
-            fetch('/api/articles', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ ...art, type: 'article', handle: '__articles' }),
-            }).catch(() => {})
-          }
-        }
+      const cleaned = cloudArticles.map((a) => ({
+        id: a.id, title: a.title || '', excerpt: a.excerpt || '',
+        url: a.url || '', learnUrl: a.learnUrl || '', platform: a.platform || 'linkedin',
+        authorHandle: a.authorHandle || '', authorName: a.authorName || '',
+        authorAvatar: a.authorAvatar || '', tags: a.tags || [], likes: a.likes || 0,
+        createdAt: a.createdAt || '',
+      }))
+      const localStr = localStorage.getItem(STORAGE_KEYS.ARTICLES)
+      const newStr = JSON.stringify(cleaned)
+      if (localStr !== newStr) {
+        localStorage.setItem(STORAGE_KEYS.ARTICLES, newStr)
+        didChange = true
       }
     }
 
@@ -673,17 +404,6 @@ export async function syncFromCloud() {
         if (localStr !== newStr) {
           localStorage.setItem(STORAGE_KEYS.MISSIONS, newStr)
           didChange = true
-        }
-      } else {
-        const localMissions = storageService.getMissions()
-        if (localMissions.length > 0) {
-          for (const mis of localMissions) {
-            fetch('/api/missions', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ ...mis, type: 'mission', handle: '__missions' }),
-            }).catch(() => {})
-          }
         }
       }
     }
@@ -727,14 +447,14 @@ export async function syncFromCloud() {
   }
 }
 
-// 브라우저 환경에서 실시간 클라우드 자동 동기화 활성화 (즉시 1회 실행 + 5초 주기 폴링 + 포커스 반응)
+// 브라우저 환경에서 실시간 클라우드 자동 동기화 활성화 (즉시 1회 실행 + 3초 주기 폴링 + 포커스 반응)
 if (typeof window !== 'undefined') {
   syncFromCloud()
   window.addEventListener('focus', () => syncFromCloud())
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') syncFromCloud()
   })
-  setInterval(syncFromCloud, 5000)
+  setInterval(syncFromCloud, 3000)
 }
 
 export const storageService = {
@@ -815,10 +535,10 @@ export const storageService = {
   loginMember(handle, password) {
     const clean = String(handle || '').trim()
 
-    // 1. LIT 운영진(관리자) 로그인 (아이디: LIT, 비밀번호: 1234)
+    // 1. LIT 운영진(관리자) 로그인 (아이디: LIT, 학번: lit2026!@)
     if (clean.toUpperCase() === 'LIT') {
-      if (password !== '1234') {
-        return { success: false, message: '비밀번호가 올바르지 않습니다. (운영진 비밀번호: 1234)' }
+      if (password !== 'lit2026!@') {
+        return { success: false, message: '학번이 올바르지 않습니다. (운영진 인증 실패)' }
       }
       this.setAdmin(true)
       this.setCurrentUser('LIT')
@@ -830,9 +550,9 @@ export const storageService = {
     if (!member) {
       return { success: false, message: '등록되지 않은 아이디입니다.' }
     }
-    const memberPw = member.password || '1234'
+    const memberPw = member.password || ''
     if (memberPw !== password) {
-      return { success: false, message: '비밀번호가 올바르지 않습니다.' }
+      return { success: false, message: '학번이 일치하지 않습니다.' }
     }
     this.setAdmin(false)
     this.setCurrentUser(member.handle)
@@ -971,20 +691,20 @@ export const storageService = {
       id: cleanHandle,
       handle: cleanHandle,
       name: (newMember.name || '').trim() || 'LIT 부원',
-      password: newMember.password || '1234',
-      role: newMember.role || 'LIT 부원',
-      major: newMember.major || '컴퓨터학부',
+      password: (newMember.password || '').trim(),
+      role: (newMember.role || '').trim(),
+      major: (newMember.major || '').trim(),
       certifications: (newMember.certifications || '').trim(),
       contributorId: contributorId || (msLink ? extractContributorId(msLink) : ''),
       clicks: Number(newMember.clicks) || 0,
       target: 250,
       msLink,
       socials: {
-        linkedin: newMember.linkedin || '',
-        blog: newMember.blog || '',
-        github: newMember.github || '',
+        linkedin: (newMember.linkedin || '').trim(),
+        blog: (newMember.blog || '').trim(),
+        github: (newMember.github || '').trim(),
       },
-      bio: newMember.bio || 'MSA 챌린지 250 클릭 달성을 향해 달립니다!',
+      bio: (newMember.bio || '').trim(),
       avatar:
         newMember.avatar ||
         AVATAR_PRESETS[Math.abs(cleanHandle.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)) % AVATAR_PRESETS.length],
@@ -1012,6 +732,7 @@ export const storageService = {
           localStorage.setItem(STORAGE_KEYS.MEMBERS, JSON.stringify(finalMembers))
           notify()
         }
+        syncFromCloud().catch(() => {})
       } else {
         const errJson = await res.json().catch(() => ({}))
         console.warn('[Azure Sync] addMember server error:', res.status, errJson)
@@ -1043,11 +764,12 @@ export const storageService = {
     }
     notify()
 
-    // Azure Cosmos DB에서 부원 삭제 실시간 전송
+    // Azure Cosmos DB에서 부원 삭제 실시간 전송 후 즉시 클라우드 동기화
     try {
       await fetch(`/api/members?handle=${encodeURIComponent(clean)}`, {
         method: 'DELETE',
       })
+      syncFromCloud().catch(() => {})
     } catch (e) {
       console.debug('[Azure Sync] deleteMember error:', e)
     }
@@ -1098,7 +820,7 @@ export const storageService = {
   },
 
   verifyAdminPasscode(code) {
-    const valid = code === '1234' || code === 'lit2026!' || code === 'admin'
+    const valid = code === 'lit2026!@' || code === 'lit2026!' || code === '1234' || code === 'admin'
     if (valid) {
       this.setAdmin(true)
     }
@@ -1157,6 +879,7 @@ export const storageService = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...newArt, type: 'article', handle: '__articles' }),
       })
+      syncFromCloud().catch(() => {})
     } catch (e) {
       console.warn('[Azure Sync] addArticle error:', e)
     }
@@ -1199,6 +922,7 @@ export const storageService = {
       await fetch(`/api/articles?id=${encodeURIComponent(articleId)}`, {
         method: 'DELETE',
       })
+      syncFromCloud().catch(() => {})
     } catch (e) {
       console.warn('[Azure Sync] deleteArticle error:', e)
     }
@@ -1237,6 +961,7 @@ export const storageService = {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ...target, type: 'article', handle: '__articles' }),
         })
+        syncFromCloud().catch(() => {})
       } catch (e) {
         console.warn('[Azure Sync] updateArticle error:', e)
       }
@@ -1293,6 +1018,7 @@ export const storageService = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...newMis, type: 'mission', handle: '__missions' }),
       })
+      syncFromCloud().catch(() => {})
     } catch (e) {
       console.warn('[Azure Sync] addMission error:', e)
     }
@@ -1327,6 +1053,7 @@ export const storageService = {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ...target, type: 'mission', handle: '__missions' }),
         })
+        syncFromCloud().catch(() => {})
       } catch (e) {
         console.warn('[Azure Sync] updateMission error:', e)
       }
@@ -1342,6 +1069,7 @@ export const storageService = {
       await fetch(`/api/missions?id=${encodeURIComponent(missionId)}`, {
         method: 'DELETE',
       })
+      syncFromCloud().catch(() => {})
     } catch (e) {
       console.warn('[Azure Sync] deleteMission error:', e)
     }
@@ -1377,6 +1105,7 @@ export const storageService = {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ...target, type: 'mission', handle: '__missions' }),
         })
+        syncFromCloud().catch(() => {})
       } catch (e) {
         console.warn('[Azure Sync] toggleMissionCompletion error:', e)
       }
@@ -1425,6 +1154,7 @@ export const storageService = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...newFaq, type: 'faq', handle: '__faqs' }),
       })
+      syncFromCloud().catch(() => {})
     } catch (e) {
       console.warn('[Azure Sync] addFaq error:', e)
     }
@@ -1457,6 +1187,7 @@ export const storageService = {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ...target, type: 'faq', handle: '__faqs' }),
         })
+        syncFromCloud().catch(() => {})
       } catch (e) {
         console.warn('[Azure Sync] updateFaq error:', e)
       }
@@ -1474,6 +1205,7 @@ export const storageService = {
       await fetch(`/api/faqs?id=${encodeURIComponent(faqId)}`, {
         method: 'DELETE',
       })
+      syncFromCloud().catch(() => {})
     } catch (e) {
       console.warn('[Azure Sync] deleteFaq error:', e)
     }

@@ -379,13 +379,13 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
 
           <div>
             <label className="block font-mono text-[10px] uppercase text-muted mb-1">
-              새 비밀번호 변경 (변경할 때만 입력)
+              새 학번 변경 (변경할 때만 입력)
             </label>
             <input
-              type="password"
+              type="text"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="변경할 새 비밀번호를 입력하세요"
+              placeholder="변경할 새 학번을 입력하세요"
               className="glass w-full rounded-xl px-3 py-2 text-xs text-fg focus:border-pink/50 focus:outline-none"
             />
           </div>

@@ -40,6 +40,17 @@ module.exports = async function (context, req) {
       return
     }
 
+    // 초기 목업 및 테스트 글 자동 재등록 차단
+    const blockedMockIds = new Set(['art-1', 'art-2', 'art-3', 'art-4', 'art-5', 'art-6', 'art-1789899483060'])
+    if (blockedMockIds.has(article.id)) {
+      context.res = {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+        body: { success: true, message: 'Mock article ignored.', source: 'filter' },
+      }
+      return
+    }
+
     const doc = {
       ...article,
       id: article.id,

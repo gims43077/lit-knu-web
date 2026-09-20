@@ -105,12 +105,6 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
     }
   }
 
-  // 2. 부원 빠른 선택 (아이디 자동완성)
-  const handleQuickSelect = (handle) => {
-    setLoginHandle(handle)
-    setLoginPassword('1234') // 기본 목업 계정 자동완성 편의 제공
-  }
-
   // 3. 로그아웃
   const handleLogout = () => {
     storageService.logout()
@@ -136,13 +130,13 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
       return
     }
 
-    if (!newMember.password || newMember.password.length < 4) {
-      setRegisterError('비밀번호는 최소 4자리 이상이어야 합니다.')
+    if (!newMember.password || newMember.password.trim().length < 4) {
+      setRegisterError('학번을 올바르게 입력해 주세요.')
       return
     }
 
     if (newMember.password !== newMember.passwordConfirm) {
-      setRegisterError('비밀번호와 비밀번호 확인이 일치하지 않습니다.')
+      setRegisterError('학번과 학번 확인이 일치하지 않습니다.')
       return
     }
 
@@ -188,7 +182,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
         <div className="flex items-center justify-between border-b border-line pb-4">
           <div className="flex items-center gap-2">
             <Lock className="h-5 w-5 text-pink" />
-            <h3 className="font-display text-xl font-bold text-fg">부원 로그인 & 계정 보안</h3>
+            <h3 className="font-display text-xl font-bold text-fg">로그인</h3>
           </div>
           <button onClick={onClose} className="rounded-full p-1 text-muted hover:text-fg">
             <X className="h-5 w-5" />
@@ -255,14 +249,14 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
                     setLoginHandle(e.target.value)
                     setLoginError('')
                   }}
-                  placeholder="예: LIT, shlee, minji_kim"
+                  placeholder="아이디를 입력하세요"
                   className="glass w-full rounded-xl px-3.5 py-2.5 text-xs text-fg focus:border-pink/50 focus:outline-none"
                 />
               </div>
 
               <div>
                 <label className="block font-mono text-[10px] uppercase text-muted mb-1">
-                  비밀번호
+                  학번
                 </label>
                 <input
                   type="password"
@@ -272,7 +266,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
                     setLoginPassword(e.target.value)
                     setLoginError('')
                   }}
-                  placeholder="비밀번호를 입력하세요"
+                  placeholder="학번을 입력하세요"
                   className="glass w-full rounded-xl px-3.5 py-2.5 text-xs text-fg focus:border-pink/50 focus:outline-none"
                 />
               </div>
@@ -298,33 +292,6 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
                 계정 로그인
               </button>
             </form>
-
-            <div className="rounded-xl border border-line bg-white/[0.02] p-3 text-[11px] text-muted">
-              <p className="font-semibold text-fg/90 mb-1">💡 빠른 계정 선택 & 안내:</p>
-              <p className="mb-2 leading-relaxed text-[11px]">
-                클릭 시 아이디와 비밀번호(기본: <span className="text-mint font-mono font-bold">1234</span>)가 자동 입력됩니다.<br />
-                <span className="text-pink font-semibold">⚡ 관리자 계정:</span> 아이디 <span className="text-mint font-mono font-bold">LIT</span> / 비밀번호 <span className="text-mint font-mono font-bold">1234</span> 입력 시 모든 관리자 권한이 자동 부여됩니다.
-              </p>
-              <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto">
-                <button
-                  type="button"
-                  onClick={() => handleQuickSelect('LIT')}
-                  className="glass rounded-lg px-2.5 py-1 text-[10px] font-bold text-mint border-mint/40 bg-mint/10 hover:border-mint hover:bg-mint/20 transition-all"
-                >
-                  👑 LIT (운영진)
-                </button>
-                {members.map((m) => (
-                  <button
-                    key={m.handle}
-                    type="button"
-                    onClick={() => handleQuickSelect(m.handle)}
-                    className="glass rounded-lg px-2 py-1 text-[10px] text-fg/80 hover:text-fg hover:border-mint/50"
-                  >
-                    {m.name} (@{m.handle})
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
         )}
 
@@ -420,30 +387,30 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
                   required
                   value={newMember.handle}
                   onChange={(e) => setNewMember({ ...newMember, handle: e.target.value.toLowerCase().trim() })}
-                  placeholder="예: gildong_hong"
+                  placeholder="아이디를 입력하세요"
                   className="glass w-full rounded-xl px-3 py-2 text-xs text-fg focus:border-pink/50 focus:outline-none"
                 />
               </div>
             </div>
 
-            {/* 비밀번호 & 비밀번호 확인 */}
+            {/* 학번 & 학번 확인 */}
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block font-mono text-[10px] uppercase text-muted mb-1">
-                  비밀번호 설정 *
+                  학번 *
                 </label>
                 <input
                   type="password"
                   required
                   value={newMember.password}
                   onChange={(e) => setNewMember({ ...newMember, password: e.target.value })}
-                  placeholder="4자리 이상"
+                  placeholder="학번을 입력하세요"
                   className="glass w-full rounded-xl px-3 py-2 text-xs text-fg focus:border-pink/50 focus:outline-none"
                 />
               </div>
               <div>
                 <label className="block font-mono text-[10px] uppercase text-muted mb-1">
-                  비밀번호 확인 *
+                  학번 확인 *
                 </label>
                 <input
                   type="password"
@@ -458,13 +425,13 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
 
             <div>
               <label className="block font-mono text-[10px] uppercase text-muted mb-1">
-                전공 / 학번
+                전공
               </label>
               <input
                 type="text"
                 value={newMember.major}
                 onChange={(e) => setNewMember({ ...newMember, major: e.target.value })}
-                placeholder="예: 컴퓨터학부 23학번"
+                placeholder="예: 컴퓨터학부"
                 className="glass w-full rounded-xl px-3 py-2 text-xs text-fg focus:border-pink/50 focus:outline-none"
               />
             </div>
@@ -540,7 +507,7 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
               disabled={isRegistering}
               className="mt-3 w-full rounded-xl bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))] py-2.5 text-xs font-bold text-bg hover:opacity-90 transition-opacity disabled:opacity-50"
             >
-              {isRegistering ? '클라우드 동기화 및 가입 처리 중...' : '부원 계정 생성 및 시작하기'}
+              {isRegistering ? '계정 생성 중...' : '계정 생성'}
             </button>
           </form>
         )}

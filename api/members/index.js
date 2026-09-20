@@ -44,6 +44,7 @@ module.exports = async function (context, req) {
       ...member,
       handle,
       id: handle,
+      type: 'member',
       updatedAt: new Date().toISOString(),
     }
 
@@ -96,6 +97,14 @@ module.exports = async function (context, req) {
         return
       } catch (err) {
         context.log.error('Cosmos DB delete error:', err)
+        if (err.code === 404) {
+          context.res = {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+            body: { success: true, message: `${handle} 부원이 이미 삭제되었습니다.`, source: 'azure-cosmos-db' },
+          }
+          return
+        }
       }
     }
 
