@@ -36,6 +36,42 @@ export const AVATAR_COLORS = [
 
 export const AVATAR_PRESETS = AVATAR_COLORS.map(createSolidColorAvatar)
 
+// 이미지 압축 헬퍼 (모바일 고화질 사진도 240x240의 가벼운 썸네일로 압축하여 Cosmos DB와 LocalStorage에 초고속 저장)
+export function compressImage(file, maxWidth = 240, quality = 0.8) {
+  return new Promise((resolve) => {
+    if (!file) return resolve('')
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const img = new Image()
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        let width = img.width
+        let height = img.height
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width)
+            width = maxWidth
+          }
+        } else {
+          if (height > maxWidth) {
+            width = Math.round((width * maxWidth) / height)
+            height = maxWidth
+          }
+        }
+        canvas.width = width
+        canvas.height = height
+        const ctx = canvas.getContext('2d')
+        ctx.drawImage(img, 0, 0, width, height)
+        resolve(canvas.toDataURL('image/jpeg', quality))
+      }
+      img.onerror = () => resolve(e.target.result)
+      img.src = e.target.result
+    }
+    reader.onerror = () => resolve('')
+    reader.readAsDataURL(file)
+  })
+}
+
 // LIT 공식 관리자(운영진) 계정 정의
 export const ADMIN_MEMBER = {
   id: 'admin-lit',
@@ -541,6 +577,21 @@ export async function syncFromCloud() {
           }
         })
 
+        // 3. 로컬에만 존재하고 클라우드에 아직 없는 신규 부원(오프라인 가입 등)이 있다면 즉시 클라우드로 업로드
+        const cloudHandles = new Set(cloudMembers.map((cm) => (cm.handle || '').toLowerCase()))
+        const defaultHandles = new Set(DEFAULT_MEMBERS.map((dm) => dm.handle.toLowerCase()))
+        for (const m of local) {
+          if (!m || !m.handle) continue
+          const h = m.handle.toLowerCase()
+          if (!cloudHandles.has(h) && !defaultHandles.has(h)) {
+            fetch('/api/members', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(m),
+            }).catch(() => {})
+          }
+        }
+
         const merged = Array.from(map.values())
         localStorage.setItem(STORAGE_KEYS.MEMBERS, JSON.stringify(merged))
         notify()
@@ -563,14 +614,14 @@ export async function syncFromCloud() {
   }
 }
 
-// 브라우저 환경에서 실시간 클라우드 자동 동기화 활성화
+// 브라우저 환경에서 실시간 클라우드 자동 동기화 활성화 (즉시 1회 실행 + 5초 주기 폴링 + 포커스 반응)
 if (typeof window !== 'undefined') {
-  setTimeout(syncFromCloud, 500)
+  syncFromCloud()
   window.addEventListener('focus', () => syncFromCloud())
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') syncFromCloud()
   })
-  setInterval(syncFromCloud, 10000)
+  setInterval(syncFromCloud, 5000)
 }
 
 export const storageService = {
@@ -675,7 +726,7 @@ export const storageService = {
     return { success: true, member, isAdmin: false }
   },
 
-  updateMemberClicks(handle, amount, isAbsolute = false) {
+  async updateMemberClicks(handle, amount, isAbsolute = false) {
     if (!this.checkEditPermission(handle)) {
       alert('본인 계정의 클릭수만 수정할 수 있습니다. (관리자만 타인 계정 수정 가능)')
       return null
@@ -701,7 +752,6 @@ export const storageService = {
       if (m.handle.toLowerCase() === clean.toLowerCase()) {
         const currentClicks = Math.max(0, Number(m.clicks) || 0)
         const nextClicks = isAbsolute ? Math.max(0, delta) : Math.max(0, currentClicks + delta)
-        // 뱃지 자동 계산
         const badges = MILESTONES.filter((ml) => nextClicks >= ml.count).map((ml) => ml.badge)
         return {
           ...m,
@@ -715,16 +765,20 @@ export const storageService = {
     notify()
 
     // Azure Cosmos DB로 클릭수 실시간 전송
-    fetch('/api/clicks', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ handle: clean, amount, isAbsolute }),
-    }).catch((e) => console.debug('[Azure Sync] clicks error:', e))
+    try {
+      await fetch('/api/clicks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ handle: clean, amount, isAbsolute }),
+      })
+    } catch (e) {
+      console.debug('[Azure Sync] clicks error:', e)
+    }
 
     return updated.find((m) => m.handle.toLowerCase() === clean.toLowerCase())
   },
 
-  updateMemberProfile(handle, partial) {
+  async updateMemberProfile(handle, partial) {
     if (!this.checkEditPermission(handle)) {
       alert('본인의 프로필만 수정할 수 있습니다. (관리자만 타인 계정 수정 가능)')
       return null
@@ -760,28 +814,50 @@ export const storageService = {
     // Azure Cosmos DB로 프로필 변경사항 실시간 전송
     const savedMember = updated.find((m) => m.handle.toLowerCase() === clean.toLowerCase())
     if (savedMember) {
-      fetch('/api/members', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(savedMember),
-      }).catch((e) => console.debug('[Azure Sync] profile update error:', e))
+      try {
+        const res = await fetch('/api/members', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(savedMember),
+        })
+        if (res.ok) {
+          const resData = await res.json().catch(() => ({}))
+          if (resData?.member) {
+            const finalUpdated = this.getMembers().map((m) =>
+              m.handle.toLowerCase() === clean.toLowerCase() ? { ...m, ...resData.member } : m
+            )
+            localStorage.setItem(STORAGE_KEYS.MEMBERS, JSON.stringify(finalUpdated))
+            notify()
+          }
+        }
+      } catch (e) {
+        console.debug('[Azure Sync] profile update error:', e)
+      }
     }
 
     return savedMember
   },
 
-  addMember(newMember) {
-    const members = this.getMembers()
-    const existing = members.find((m) => m.handle === newMember.handle)
-    if (existing) {
-      return this.updateMemberProfile(newMember.handle, newMember)
+  async addMember(newMember) {
+    let cleanHandle = String(newMember.handle || '').trim().toLowerCase().replace(/\s+/g, '_')
+    // 영문, 숫자, 밑줄, 하이픈 및 한글 문자 모두 허용
+    cleanHandle = cleanHandle.replace(/[^a-z0-9_가-힣-]/g, '')
+    if (!cleanHandle) {
+      cleanHandle = 'user_' + Date.now().toString(36)
     }
+
+    const members = this.getMembers()
+    const existing = members.find((m) => m.handle.toLowerCase() === cleanHandle.toLowerCase())
+    if (existing) {
+      return await this.updateMemberProfile(cleanHandle, newMember)
+    }
+
     const contributorId = (newMember.contributorId || extractContributorId(newMember.msLink) || '').trim()
     const msLink = formatContributorLink(contributorId || newMember.msLink)
     const memberObj = {
-      id: `m-${Date.now()}`,
-      handle: newMember.handle.toLowerCase().replace(/[^a-z0-9_]/g, ''),
-      name: newMember.name,
+      id: cleanHandle,
+      handle: cleanHandle,
+      name: (newMember.name || '').trim() || 'LIT 부원',
       password: newMember.password || '1234',
       role: newMember.role || 'LIT 부원',
       major: newMember.major || '컴퓨터학부',
@@ -798,25 +874,45 @@ export const storageService = {
       bio: newMember.bio || 'MSA 챌린지 250 클릭 달성을 향해 달립니다!',
       avatar:
         newMember.avatar ||
-        AVATAR_PRESETS[Math.abs((newMember.handle || '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)) % AVATAR_PRESETS.length],
+        AVATAR_PRESETS[Math.abs(cleanHandle.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)) % AVATAR_PRESETS.length],
       badges: MILESTONES.filter((ml) => (Number(newMember.clicks) || 0) >= ml.count).map((ml) => ml.badge),
     }
+
     members.push(memberObj)
     localStorage.setItem(STORAGE_KEYS.MEMBERS, JSON.stringify(members))
     this.setCurrentUser(memberObj.handle)
     notify()
 
     // Azure Cosmos DB로 신규 부원 실시간 전송
-    fetch('/api/members', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(memberObj),
-    }).catch((e) => console.debug('[Azure Sync] addMember error:', e))
+    try {
+      const res = await fetch('/api/members', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(memberObj),
+      })
+      if (res.ok) {
+        const data = await res.json().catch(() => ({}))
+        if (data?.member) {
+          const finalMembers = this.getMembers().map((m) =>
+            m.handle.toLowerCase() === cleanHandle.toLowerCase() ? { ...m, ...data.member } : m
+          )
+          localStorage.setItem(STORAGE_KEYS.MEMBERS, JSON.stringify(finalMembers))
+          notify()
+        }
+      } else {
+        const errJson = await res.json().catch(() => ({}))
+        console.warn('[Azure Sync] addMember server error:', res.status, errJson)
+        throw new Error(errJson.message || `서버 응답 오류 (${res.status})`)
+      }
+    } catch (e) {
+      console.warn('[Azure Sync] addMember network error:', e)
+      // 오프라인 상태이거나 네트워크 에러여도 로컬에는 저장되어 있으므로 이후 자동 동기화됨
+    }
 
     return memberObj
   },
 
-  deleteMember(handle) {
+  async deleteMember(handle) {
     if (!this.isAdmin()) {
       alert('관리자만 부원을 삭제할 수 있습니다.')
       return false
@@ -835,9 +931,13 @@ export const storageService = {
     notify()
 
     // Azure Cosmos DB에서 부원 삭제 실시간 전송
-    fetch(`/api/members?handle=${encodeURIComponent(clean)}`, {
-      method: 'DELETE',
-    }).catch((e) => console.debug('[Azure Sync] deleteMember error:', e))
+    try {
+      await fetch(`/api/members?handle=${encodeURIComponent(clean)}`, {
+        method: 'DELETE',
+      })
+    } catch (e) {
+      console.debug('[Azure Sync] deleteMember error:', e)
+    }
 
     return true
   },

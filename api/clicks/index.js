@@ -1,7 +1,8 @@
 const { getCosmosContainer, getInMemoryStore } = require('../shared/cosmosClient')
 
 module.exports = async function (context, req) {
-  const { handle, amount, isAbsolute } = req.body || {}
+  const { handle: rawHandle, amount, isAbsolute } = req.body || {}
+  const handle = String(rawHandle || '').trim().toLowerCase()
   if (!handle) {
     context.res = { status: 400, body: { success: false, message: 'handle is required' } }
     return

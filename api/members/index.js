@@ -32,14 +32,17 @@ module.exports = async function (context, req) {
   // 2. POST: 부원 생성 또는 업데이트
   if (req.method === 'POST') {
     const member = req.body
-    if (!member || !member.handle) {
+    const rawHandle = member && (member.handle || member.id)
+    const handle = String(rawHandle || '').trim().toLowerCase()
+    if (!handle) {
       context.res = { status: 400, body: { success: false, message: '부원 handle은 필수입니다.' } }
       return
     }
 
     const doc = {
       ...member,
-      id: member.handle,
+      handle,
+      id: handle,
       updatedAt: new Date().toISOString(),
     }
 
@@ -74,7 +77,8 @@ module.exports = async function (context, req) {
 
   // 3. DELETE: 부원 삭제
   if (req.method === 'DELETE') {
-    const handle = req.query.handle || (req.body && req.body.handle)
+    const rawHandle = req.query.handle || (req.body && req.body.handle)
+    const handle = String(rawHandle || '').trim().toLowerCase()
     if (!handle) {
       context.res = { status: 400, body: { success: false, message: '삭제할 부원 handle을 지정해주세요.' } }
       return

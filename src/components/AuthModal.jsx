@@ -14,7 +14,7 @@ import {
   Users,
   X,
 } from 'lucide-react'
-import { storageService, AVATAR_PRESETS } from '../services/storageService.js'
+import { storageService, AVATAR_PRESETS, compressImage } from '../services/storageService.js'
 
 export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
   const [tab, setTab] = useState(initialTab) // 'login', 'register'
@@ -49,19 +49,21 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
     linkedin: '',
   })
   const [registerError, setRegisterError] = useState('')
+  const [isRegistering, setIsRegistering] = useState(false)
 
-  const handleAvatarUpload = (e) => {
+  const handleAvatarUpload = async (e) => {
     const file = e.target.files?.[0]
     if (!file) return
-    if (file.size > 3 * 1024 * 1024) {
-      setRegisterError('프로필 사진 파일 크기는 3MB 이하여야 합니다.')
+    if (file.size > 10 * 1024 * 1024) {
+      setRegisterError('프로필 사진 파일 크기는 10MB 이하여야 합니다.')
       return
     }
-    const reader = new FileReader()
-    reader.onload = (evt) => {
-      setNewMember((prev) => ({ ...prev, avatar: evt.target.result }))
+    try {
+      const compressed = await compressImage(file, 240, 0.8)
+      setNewMember((prev) => ({ ...prev, avatar: compressed }))
+    } catch (err) {
+      setRegisterError('이미지 압축 처리 중 오류가 발생했습니다.')
     }
-    reader.readAsDataURL(file)
   }
 
   useEffect(() => {
@@ -114,17 +116,26 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
     setCurrentUser(null)
   }
 
-  // 4. 회원가입 처리
-  const handleRegister = (e) => {
+  // 4. 회원가입 처리 (Azure Cosmos DB 즉시 실시간 동기화)
+  const handleRegister = async (e) => {
     e.preventDefault()
     setRegisterError('')
 
-    if (!newMember.name || !newMember.handle || !newMember.password) {
-      setRegisterError('필수 입력 항목(이름, 아이디, 비밀번호)을 모두 채워주세요.')
+    const trimmedName = (newMember.name || '').trim()
+    let cleanHandle = (newMember.handle || '').trim().toLowerCase().replace(/\s+/g, '_')
+    cleanHandle = cleanHandle.replace(/[^a-z0-9_가-힣-]/g, '')
+
+    if (!trimmedName) {
+      setRegisterError('이름을 입력해 주세요.')
       return
     }
 
-    if (newMember.password.length < 4) {
+    if (!cleanHandle) {
+      setRegisterError('아이디(영문, 숫자, 밑줄 또는 한글)를 입력해 주세요.')
+      return
+    }
+
+    if (!newMember.password || newMember.password.length < 4) {
       setRegisterError('비밀번호는 최소 4자리 이상이어야 합니다.')
       return
     }
@@ -134,16 +145,27 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
       return
     }
 
-    const existing = storageService.getMember(newMember.handle)
+    const existing = storageService.getMember(cleanHandle)
     if (existing) {
       setRegisterError('이미 존재하는 아이디입니다. 다른 아이디를 입력해 주세요.')
       return
     }
 
-    const created = storageService.addMember(newMember)
-    setMembers(storageService.getMembers())
-    setCurrentUser(created)
-    onClose()
+    setIsRegistering(true)
+    try {
+      const created = await storageService.addMember({
+        ...newMember,
+        name: trimmedName,
+        handle: cleanHandle,
+      })
+      setMembers(storageService.getMembers())
+      setCurrentUser(created)
+      onClose()
+    } catch (err) {
+      setRegisterError(err.message || '클라우드 등록 중 오류가 발생했습니다.')
+    } finally {
+      setIsRegistering(false)
+    }
   }
 
   return (
@@ -514,9 +536,10 @@ export default function AuthModal({ isOpen, onClose, initialTab = 'login' }) {
 
             <button
               type="submit"
-              className="mt-3 w-full rounded-xl bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))] py-2.5 text-xs font-bold text-bg hover:opacity-90 transition-opacity"
+              disabled={isRegistering}
+              className="mt-3 w-full rounded-xl bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))] py-2.5 text-xs font-bold text-bg hover:opacity-90 transition-opacity disabled:opacity-50"
             >
-              부원 계정 생성 및 시작하기
+              {isRegistering ? '클라우드 동기화 및 가입 처리 중...' : '부원 계정 생성 및 시작하기'}
             </button>
           </form>
         )}

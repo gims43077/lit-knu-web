@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Camera, Edit3, ExternalLink, Minus, Plus, Save, Sparkles, Trash2, Upload, User, ShieldCheck, X } from 'lucide-react'
-import { storageService, extractContributorId, formatContributorLink, AVATAR_PRESETS } from '../services/storageService.js'
+import { storageService, extractContributorId, formatContributorLink, AVATAR_PRESETS, compressImage } from '../services/storageService.js'
 
 export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
   const [currentUser, setCurrentUser] = useState(storageService.getCurrentUser())
   const [isAdmin, setIsAdmin] = useState(storageService.isAdmin())
   const [activeMember, setActiveMember] = useState(targetMember || storageService.getCurrentUser())
   const [newPassword, setNewPassword] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     role: '',
@@ -66,55 +67,63 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
     }))
   }
 
-  const handleFileUpload = (e) => {
+  const handleFileUpload = async (e) => {
     const file = e.target.files?.[0]
     if (!file) return
-    if (file.size > 3 * 1024 * 1024) {
-      alert('이미지 파일 크기는 3MB 이하여야 합니다.')
+    if (file.size > 10 * 1024 * 1024) {
+      alert('이미지 파일 크기는 10MB 이하여야 합니다.')
       return
     }
-    const reader = new FileReader()
-    reader.onload = (evt) => {
-      setFormData((prev) => ({ ...prev, avatar: evt.target.result }))
+    try {
+      const compressed = await compressImage(file, 240, 0.8)
+      setFormData((prev) => ({ ...prev, avatar: compressed }))
+    } catch (err) {
+      alert('이미지 압축 처리 중 오류가 발생했습니다.')
     }
-    reader.readAsDataURL(file)
   }
 
-  const handleDeleteMember = () => {
+  const handleDeleteMember = async () => {
     if (!isAdmin) return
     if (confirm(`정말 '${activeMember.name}(@${activeMember.handle})' 부원을 동아리 명단에서 삭제하시겠습니까?`)) {
-      storageService.deleteMember(activeMember.handle)
+      await storageService.deleteMember(activeMember.handle)
       alert(`'${activeMember.name}' 부원이 명단에서 삭제되었습니다.`)
       onClose()
     }
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    const updatePayload = {
-      name: formData.name.trim(),
-      role: formData.role.trim(),
-      major: formData.major.trim(),
-      avatar: (formData.avatar || activeMember.avatar || '').trim(),
-      certifications: formData.certifications.trim(),
-      contributorId: formData.contributorId.trim(),
-      bio: formData.bio.trim(),
-      clicks: Number(formData.clicks),
-      socials: {
-        linkedin: formData.linkedin.trim(),
-        blog: formData.blog.trim(),
-        github: formData.github.trim(),
-      },
-    }
+    setIsSaving(true)
+    try {
+      const updatePayload = {
+        name: formData.name.trim(),
+        role: formData.role.trim(),
+        major: formData.major.trim(),
+        avatar: (formData.avatar || activeMember.avatar || '').trim(),
+        certifications: formData.certifications.trim(),
+        contributorId: formData.contributorId.trim(),
+        bio: formData.bio.trim(),
+        clicks: Number(formData.clicks),
+        socials: {
+          linkedin: formData.linkedin.trim(),
+          blog: formData.blog.trim(),
+          github: formData.github.trim(),
+        },
+      }
 
-    if (newPassword.trim()) {
-      updatePayload.password = newPassword.trim()
-    }
+      if (newPassword.trim()) {
+        updatePayload.password = newPassword.trim()
+      }
 
-    storageService.updateMemberProfile(activeMember.handle, updatePayload)
-    storageService.updateMemberClicks(activeMember.handle, Number(formData.clicks), true)
-    setNewPassword('')
-    onClose()
+      await storageService.updateMemberProfile(activeMember.handle, updatePayload)
+      await storageService.updateMemberClicks(activeMember.handle, Number(formData.clicks), true)
+      setNewPassword('')
+      onClose()
+    } catch (err) {
+      alert(`프로필 저장 중 오류가 발생했습니다: ${err.message}`)
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   return (
@@ -404,10 +413,11 @@ export default function ProfileModal({ isOpen, onClose, targetMember = null }) {
               </button>
               <button
                 type="submit"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))] px-5 py-2.5 text-xs font-bold text-bg hover:opacity-90 transition-opacity"
+                disabled={isSaving}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-[linear-gradient(90deg,var(--color-pink),var(--color-mint))] px-5 py-2.5 text-xs font-bold text-bg hover:opacity-90 transition-opacity disabled:opacity-50"
               >
                 <Save className="h-3.5 w-3.5" />
-                변경사항 저장
+                {isSaving ? '클라우드 저장 중...' : '변경사항 저장'}
               </button>
             </div>
           </div>
